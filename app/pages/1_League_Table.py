@@ -19,9 +19,12 @@ eyebrow("Premier League")
 st.title("League Table")
 
 matches = load_matches()
-seasons = all_seasons()
+seasons_desc = list(reversed(all_seasons()))
 
-season = st.selectbox("Season", options=list(reversed(seasons)), index=0)
+requested_season = st.query_params.get("season")
+default_idx = seasons_desc.index(requested_season) if requested_season in seasons_desc else 0
+
+season = st.selectbox("Season", options=seasons_desc, index=default_idx)
 table = team_season_table(matches, season)
 
 divider()

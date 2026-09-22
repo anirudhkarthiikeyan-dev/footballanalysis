@@ -76,11 +76,14 @@ to answer yet (per this project's own rule: don't add ML just to claim
 
 ## Testing scope
 
-32 automated tests cover data quality, database integrity, analytics
-correctness, and the ML module (all passing). The Streamlit app itself
-was verified manually page-by-page in a live browser session (see
-`docs/PROJECT_PROGRESS.md`), not via an automated UI test suite —
-Playwright browser tests are not yet written.
+57 fast unit/data/database/analytics tests (`tests/`) plus 41 Playwright
+browser tests (`tests/ui/` — every page loads, no console/network
+errors, no horizontal overflow, filters actually change real data,
+navigation and the intro's Enter/Skip both work) — 98 tests total, all
+passing. The Playwright suite is a separate, slower suite (launches a
+real Streamlit server and headless Chromium) — see README for how to
+run it. It does not run automatically in this environment's fast
+`pytest tests/` command; run it explicitly with `pytest tests/ui/`.
 
 ## Documentation scope
 

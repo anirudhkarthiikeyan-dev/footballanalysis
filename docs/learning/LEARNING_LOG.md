@@ -423,6 +423,71 @@ overlap.
 
 ---
 
+## Browser automation testing (Playwright) and debugging flaky tests
+
+**What it means:** driving a real browser programmatically to verify
+an app actually works for a user — not just that its backend logic is
+correct (which the fast `tests/` suite already covers), but that pages
+render, navigation works, and interactions produce the right visible
+result.
+
+**Why used:** the fast pytest suite calls Python functions directly —
+it can't catch a bug that only exists in how the Streamlit frontend
+renders or wires up a widget. Playwright can.
+
+**Where:** `tests/ui/` (`conftest.py` launches a real Streamlit server
+and a headless Chromium browser per test session; `test_streamlit_app.py`
+has 41 tests).
+
+**What to understand — three real bugs found and fixed while building
+this suite, each a genuine "the test looked wrong until I actually
+checked" moment:**
+
+1. **`wait_until="networkidle"` hung.** Streamlit keeps a persistent
+   WebSocket connection open for live updates, so the network
+   connection count never drops to zero — Playwright's "wait until the
+   network goes idle" condition can never be satisfied on a Streamlit
+   app. Fix: wait for `"load"` plus an explicit wait for a specific
+   element you actually expect.
+2. **A canvas-rendered table raced its own lazy-loaded JS.**
+   `st.dataframe` renders through `glide-data-grid`, which paints cells
+   to an HTML `<canvas>` — meaning the text is genuinely not present in
+   the DOM at all (`page.inner_text()` can never see it), and the grid's
+   JS bundle loads on demand, so a fixed `wait_for_timeout()` before
+   reading the table passed or failed depending on whether the browser
+   had already cached that bundle from an earlier test. Fix: wait for
+   the grid's *container element* (`[data-testid="stDataFrame"]`) to
+   exist, which is a real readiness signal instead of a guessed delay.
+3. **A false "navigation isn't working" alarm.** A test asserted the
+   URL changed after clicking a search result, using
+   `page.wait_for_selector("text=Team Explorer")` as the "we've
+   arrived" signal — but that text is also in the *sidebar link*
+   present on every single page, including the one being navigated
+   away from. The wait resolved instantly, before the real navigation
+   (a server-side rerun, not an instant client-side change) had
+   finished, so the URL assertion ran too early and looked like a
+   broken feature. Fix: `page.wait_for_url()`, which waits for the
+   actual thing being tested instead of a proxy for it.
+
+**The common thread:** every one of these was diagnosed with a small,
+standalone Playwright script run directly (not by guessing and
+re-running the full 5-minute suite) — printing `canvas` element counts,
+`input_value()`, and actual failed request URLs to find the real cause
+before touching the test code.
+
+**Interview question:** "Tell me about a flaky or failing test you had
+to debug — how did you find the real cause?"
+
+**How to explain it:** don't assume the first plausible explanation —
+verify with the smallest possible reproduction. When a test intermittently
+fails, that usually means it's racing something (a lazy-loaded resource,
+an async render, a proxy signal that resolves before the real
+condition) rather than the feature being broken; the fix is almost
+always "wait for the actual thing you care about," not a longer fixed
+delay.
+
+---
+
 ## End-to-end architecture / data storytelling
 
 **What it means:** designing the whole pipeline — source to

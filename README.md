@@ -47,19 +47,27 @@ errors"), and shipping a usable product on top — in both a BI tool
   is included (Power BI Desktop wasn't available in the build
   environment) — see `powerbi/README.md` for the exact build steps.
 - **Streamlit product** (`app/`) — Home (with cinematic visual-only
-  intro), League Table, League Trends, Team Explorer (profile +
-  comparison), Head-to-Head, Match Explorer, Player Explorer (explorer,
-  profile, comparison, similarity), Methodology, About, and European
-  Performance (club profile, comparison, European H2H, domestic vs
-  Europe).
+  intro), Global Search (teams, clubs, players, seasons — click a
+  result to jump straight to it), League Table, League Trends, Team
+  Explorer (profile + comparison), Head-to-Head, Match Explorer,
+  Player Explorer (explorer, profile, comparison, similarity),
+  Methodology, About, and European Performance (club profile,
+  comparison, European H2H, domestic vs Europe).
 - **European Performance module** — real UEFA Champions League data
   (2012/13–2025/26) for the 20 clubs named in the project brief,
   parsed from a public-domain source, filtered to each club's actual
   participation seasons (no fabricated campaigns), verified against 11
   independently known real finals.
-- **Tests** (`tests/`) — 57 pytest tests covering data quality, database
-  integrity, analytics correctness, the ML module, and the European
-  module. All passing.
+- **Tests** — 57 fast unit/data/database/analytics tests (`tests/`)
+  covering data quality, database integrity, analytics correctness, the
+  ML module, and the European module, plus 41 Playwright browser tests
+  (`tests/ui/`) covering every page loading, navigation, filters
+  actually changing real data, no console errors, no horizontal
+  overflow, and the intro's Enter/Skip buttons. 98 tests total, all
+  passing.
+- **Global Search** — search teams, European clubs, players and
+  seasons from one box; results deep-link straight to the right page
+  with the right entity pre-selected.
 
 ## What's not built yet
 
@@ -119,8 +127,19 @@ python -m src.transformation.export_powerbi
 
 ## Running the tests
 
+Fast unit/data/database/analytics suite (no browser needed):
+
 ```bash
-python -m pytest tests/ -v
+python -m pytest tests/ -v --ignore=tests/ui
+```
+
+Browser UI suite (Playwright — launches a real Streamlit server and a
+real headless Chromium browser; slower, run separately):
+
+```bash
+pip install -r requirements-dev.txt
+python -m playwright install chromium
+python -m pytest tests/ui/ -v
 ```
 
 ## Running the Streamlit app

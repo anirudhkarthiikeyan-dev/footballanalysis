@@ -9,9 +9,9 @@ Ordered roughly by value-to-effort.
 2. **Team form / momentum measure in Power BI**, properly windowed with
    a "last N matches" table pattern rather than the simplified
    placeholder in `dax/measures.dax`.
-3. **Playwright UI test suite** — automate the manual page-by-page
-   browser verification done for this build (nav works, no console
-   errors, no horizontal overflow) so it runs in CI.
+3. **Add the Playwright suite to CI** — it exists and passes locally
+   (`tests/ui/`, 41 tests) but isn't wired into a CI pipeline yet (no
+   CI is configured for this project at all).
 4. **Clustering-based team/player archetypes** — a genuinely motivated
    addition to the ML layer (e.g. k-means over team attacking/defensive
    profiles) with the same rigor as the similarity model: a clear
@@ -32,3 +32,6 @@ Ordered roughly by value-to-effort.
    organization publishes these competitions in the same format; could
    extend the European module using `dim_competition` (already
    designed to support more than one competition).
+10. **Global Search coverage** — currently searches teams, European
+    clubs, players and seasons. Could extend to matches (e.g. "Arsenal
+    vs Chelsea 2019") and referees.

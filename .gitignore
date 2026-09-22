@@ -26,3 +26,7 @@ powerbi/model_exports/*.csv
 
 # Archived old project
 _archive_old/
+
+# Playwright test artifacts
+tests/ui/_server.log
+

@@ -59,7 +59,9 @@ tab_profile, tab_compare, tab_h2h, tab_domestic = st.tabs(
 
 # ------------------------------------------------------------------ Club Profile
 with tab_profile:
-    club = st.selectbox("Select a club", options=clubs, index=clubs.index("Real Madrid") if "Real Madrid" in clubs else 0)
+    requested_club = st.query_params.get("club")
+    default_club = requested_club if requested_club in clubs else ("Real Madrid" if "Real Madrid" in clubs else clubs[0])
+    club = st.selectbox("Select a club", options=clubs, index=clubs.index(default_club))
     club_campaigns = campaigns[campaigns["club"] == club].sort_values("season")
 
     if club_campaigns.empty:

@@ -57,7 +57,13 @@ with tab_explore:
 # ------------------------------------------------------------------- Profile
 with tab_profile:
     all_names = sorted(players["player_name"].unique())
-    default_idx = all_names.index("Mohamed Salah") if "Mohamed Salah" in all_names else 0
+    requested_player = st.query_params.get("player")
+    if requested_player in all_names:
+        default_idx = all_names.index(requested_player)
+    elif "Mohamed Salah" in all_names:
+        default_idx = all_names.index("Mohamed Salah")
+    else:
+        default_idx = 0
     player = st.selectbox("Select a player", options=all_names, index=default_idx, key="profile_player")
 
     history = player_season_history(p90, player)

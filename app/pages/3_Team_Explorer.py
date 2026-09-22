@@ -24,7 +24,9 @@ teams = all_teams()
 tab_profile, tab_compare = st.tabs(["Team Profile", "Team Comparison"])
 
 with tab_profile:
-    team = st.selectbox("Select a team", options=teams, index=teams.index("Arsenal") if "Arsenal" in teams else 0)
+    requested_team = st.query_params.get("team")
+    default_team = requested_team if requested_team in teams else ("Arsenal" if "Arsenal" in teams else teams[0])
+    team = st.selectbox("Select a team", options=teams, index=teams.index(default_team))
     journey = team_season_journey(matches, team)
 
     if journey.empty:

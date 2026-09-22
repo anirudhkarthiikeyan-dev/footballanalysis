@@ -1,5 +1,73 @@
 # Project Progress
 
+## 2026-09-22 — Global Search + Playwright browser test suite
+
+### Completed (built, run, and verified — not just planned)
+
+- **Global Search** (`app/pages/0_Global_Search.py`) — a real gap from
+  the original brief (section 13) that had gone unbuilt across the
+  first two sessions. Searches teams, European clubs, players and
+  seasons; results deep-link via `st.switch_page(..., query_params=...)`
+  straight to the right page with the right entity pre-selected. Wired
+  query-param reading into League Table, Team Explorer, Player
+  Explorer, and European Performance.
+- **Playwright browser test suite** (`tests/ui/`, 41 tests, kept
+  separate from the fast `tests/` suite since it launches a real
+  server + headless browser) — covers every page loading, no
+  console/network errors, no horizontal overflow, sidebar navigation,
+  filters actually changing real data (verified against known facts,
+  e.g. selecting 2015/16 shows Leicester above Arsenal), the intro's
+  Enter/Skip buttons, and the new search-to-navigation flow.
+- **Real debugging, not just writing tests that happened to pass
+  first try** — three genuine issues were found and fixed along the
+  way, each confirmed with a standalone diagnostic script before
+  patching the test suite:
+  1. A `networkidle` wait strategy hung indefinitely because
+     Streamlit keeps a persistent WebSocket open (network never goes
+     idle) — switched to `load` + explicit element waits.
+  2. `st.dataframe` renders via a canvas-based grid (glide-data-grid)
+     whose JS bundle lazy-loads — a fixed timeout raced it, causing
+     table-content assertions to intermittently fail depending on
+     browser cache state. Fixed by waiting for the grid's container
+     element instead of a fixed delay.
+  3. `st.switch_page` navigation was flagged as "not navigating" by
+     an early version of the search tests — actually a false alarm:
+     the test's own wait condition (`text=Team Explorer`) matched the
+     sidebar link that's present on every page, including the
+     pre-navigation one, so the URL assertion ran before the real
+     navigation completed. Fixed with `page.wait_for_url()`.
+- **A hardcoded test port was replaced with a dynamically allocated
+  one** after a leftover process from an earlier run caused an entire
+  suite run to silently skip instead of testing anything — caught by
+  actually reading the skip reason rather than only checking "did it
+  fail."
+- Fast suite still at 57 tests, all passing throughout — this work
+  touched only new files plus 4 pre-existing pages' selectbox default
+  logic (additive, not destructive).
+- Docs updated: LIMITATIONS, FUTURE_IMPROVEMENTS, README, this file.
+
+### Decisions made without stopping to ask
+
+- Kept the Playwright suite in a separate `tests/ui/` directory with
+  its own `conftest.py` rather than merging it into the main suite, so
+  the documented fast command (`pytest tests/ --ignore=tests/ui`)
+  stays fast and doesn't require Playwright/Chromium to be installed
+  just to run the core suite.
+- Used `st.query_params` (real, shareable-URL deep-linking) rather than
+  `st.session_state` for passing search selections between pages —
+  more standard for this use case and lets a search result's
+  destination be a real bookmarkable/shareable link.
+- Didn't add the Playwright suite to a CI pipeline (no CI exists for
+  this project) — listed as a future improvement instead of building
+  CI infrastructure that wasn't asked for.
+
+### Not yet built
+
+- Same as before: compiled `.pbix`, full learning-log/interview-prep
+  expansion, public deployment, CI wiring for the new Playwright suite.
+
+---
+
 ## 2026-09-22 — European Performance module
 
 ### Completed (built, run, and verified — not just planned)

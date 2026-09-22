@@ -59,6 +59,7 @@ with left:
     st.subheader("What's inside")
     st.markdown(
         """
+- **Global Search** — find any team, club, player or season and jump straight to its page
 - **League Table** — final standings for any season, 2012/13–2025/26
 - **League Trends** — goals, home advantage and result mix over 14 seasons
 - **Team Explorer** — season-by-season journey, home/away splits, comparisons

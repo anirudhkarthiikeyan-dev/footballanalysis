@@ -10,11 +10,12 @@ sources, loaded it into a star-schema SQLite database, and built an
 analytics layer — league tables, head-to-head records, player
 percentiles — that I checked against known real results, like
 Leicester's 2015/16 title. On top of that I built a Streamlit product
-with ten pages, a k-nearest-neighbors player similarity model, and a
-European Performance module comparing 20 major clubs' real Champions
-League record, plus a Power BI-ready model with a full DAX measure
-library. Everything is tested — 57 passing pytest tests covering data
-quality, the database, and the analytics."
+with eleven pages — including global search — a k-nearest-neighbors
+player similarity model, and a European Performance module comparing
+20 major clubs' real Champions League record, plus a Power BI-ready
+model with a full DAX measure library. Everything is tested — 98
+passing tests, split between a fast unit/data/database suite and a
+Playwright browser suite that drives the actual app."
 
 ## Explain this project in 3 minutes
 
@@ -185,6 +186,22 @@ known finals caught the gap immediately, which is exactly why "runs
 without errors" isn't the same as "correct" — I only found it because
 I tested against ground truth I already knew, not because the code
 complained.
+
+## How did you test the UI, and what went wrong along the way?
+
+I built a Playwright suite (`tests/ui/`, 41 tests) covering page loads,
+navigation, filters, console errors and layout overflow, kept separate
+from the fast unit suite since it launches a real server and browser.
+Getting it reliable surfaced three real bugs, not test-writing
+mistakes: Streamlit's persistent WebSocket means `networkidle` never
+resolves, so I switched to explicit element waits; `st.dataframe`
+renders through a canvas-based grid whose JS lazy-loads, so a fixed
+delay before reading table content was a race I only caught by
+checking canvas element counts directly; and one test's "did we
+navigate" signal (`text=Team Explorer`) matched the sidebar link
+present on *every* page, so it resolved before the real navigation
+finished. Each was found with a small standalone script, not by
+guessing and re-running the full suite.
 
 ## How would you scale this project?
 
