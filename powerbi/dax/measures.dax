@@ -1,0 +1,136 @@
+// PL INTELLIGENCE — Power BI DAX measures
+// Paste these into a Measures table (New Measure) after loading
+// powerbi/model_exports/*.csv and building the relationships described
+// in powerbi/README.md.
+//
+// Grain reminder:
+//   FACT_TEAM_SEASON  — one row per team per season      (league table, team KPIs)
+//   FACT_MATCH        — one row per match                (result mix, H2H, trends)
+//   FACT_PLAYER_SEASON— one row per player per season     (player KPIs, 2019/20+)
+
+// ---------------------------------------------------------------- Team / League KPIs (FACT_TEAM_SEASON)
+
+Matches Played := SUM(fact_team_season[played])
+
+Wins := SUM(fact_team_season[wins])
+
+Draws := SUM(fact_team_season[draws])
+
+Losses := SUM(fact_team_season[losses])
+
+Points := SUM(fact_team_season[points])
+
+Win % :=
+DIVIDE([Wins], [Matches Played], 0)
+
+Goals For := SUM(fact_team_season[goals_for])
+
+Goals Against := SUM(fact_team_season[goals_against])
+
+Goal Difference := [Goals For] - [Goals Against]
+
+Goals per Match :=
+DIVIDE([Goals For], [Matches Played], 0)
+
+Clean Sheets := SUM(fact_team_season[clean_sheets])
+
+Home Win % :=
+DIVIDE(
+    SUM(fact_team_season[home_wins]),
+    SUM(fact_team_season[home_wins]) + SUM(fact_team_season[home_draws]) + SUM(fact_team_season[home_losses]),
+    0
+)
+
+Away Win % :=
+DIVIDE(
+    SUM(fact_team_season[away_wins]),
+    SUM(fact_team_season[away_wins]) + SUM(fact_team_season[away_draws]) + SUM(fact_team_season[away_losses]),
+    0
+)
+
+Avg League Position :=
+AVERAGE(fact_team_season[league_position])
+
+// ---------------------------------------------------------------- Match-level (FACT_MATCH)
+
+Total Matches := COUNTROWS(fact_match)
+
+Total Goals in Matches :=
+SUM(fact_match[home_goals]) + SUM(fact_match[away_goals])
+
+Avg Goals per Match (League) :=
+DIVIDE([Total Goals in Matches], [Total Matches], 0)
+
+Home Wins (Matches) :=
+CALCULATE(COUNTROWS(fact_match), fact_match[result] = "H")
+
+Away Wins (Matches) :=
+CALCULATE(COUNTROWS(fact_match), fact_match[result] = "A")
+
+Draws (Matches) :=
+CALCULATE(COUNTROWS(fact_match), fact_match[result] = "D")
+
+Home Win % (League) :=
+DIVIDE([Home Wins (Matches)], [Total Matches], 0)
+
+// ---------------------------------------------------------------- Form (last N matches, needs a date-sorted table trick)
+// Simplest robust approach: a measure evaluated inside a visual already
+// filtered to "last 5 matches" via a Top N filter on match_date — Power BI
+// visual-level filters handle the windowing; this measure just formats it.
+
+Form Points (Filtered Matches) :=
+VAR TeamWins =
+    CALCULATE(
+        COUNTROWS(fact_match),
+        FILTER(fact_match, fact_match[result] = "H")
+    )
+RETURN
+    TeamWins * 3   // apply this measure inside a visual pre-filtered to one team's matches
+
+// ---------------------------------------------------------------- Player KPIs (FACT_PLAYER_SEASON)
+
+Total Minutes := SUM(fact_player_season[minutes])
+
+Total Goals (Players) := SUM(fact_player_season[goals_scored])
+
+Total Assists (Players) := SUM(fact_player_season[assists])
+
+Nineties :=
+DIVIDE([Total Minutes], 90, 0)
+
+Goals per 90 :=
+DIVIDE([Total Goals (Players)], [Nineties], BLANK())
+
+Assists per 90 :=
+DIVIDE([Total Assists (Players)], [Nineties], BLANK())
+
+xG per 90 :=
+DIVIDE(SUM(fact_player_season[expected_goals]), [Nineties], BLANK())
+
+xA per 90 :=
+DIVIDE(SUM(fact_player_season[expected_assists]), [Nineties], BLANK())
+
+Goals Above xG :=
+SUM(fact_player_season[goals_scored]) - SUM(fact_player_season[expected_goals])
+
+// Percentile rank of each player's Goals per 90 within the current
+// filter context (e.g. a season + position slicer selection), using a
+// RANKX over the visible player set. Use on a player-grain table/matrix
+// visual with season + position as slicers so "cohort" matches the
+// Streamlit app's percentile definition (same season, same position).
+// NOTE: DAX in this file is written and documented to spec but has not
+// been executed in Power BI Desktop in this environment (not installed
+// here) — verify it opens and evaluates as expected before relying on it.
+Goals per 90 Rank :=
+RANKX(
+    ALLSELECTED(dim_player[player_id]),
+    [Goals per 90],
+    ,
+    DESC
+)
+
+Goals per 90 Percentile :=
+VAR TotalPlayers = COUNTROWS(ALLSELECTED(dim_player[player_id]))
+VAR CurrentRank = [Goals per 90 Rank]
+RETURN
+    DIVIDE(TotalPlayers - CurrentRank, TotalPlayers - 1, 0) * 100

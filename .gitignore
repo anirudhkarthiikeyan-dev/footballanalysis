@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Data - raw files are re-downloadable; keep processed + db out of git
+# by default since they're derived artifacts, not source.
+data/raw/
+data/processed/
+database/*.db
+powerbi/model_exports/*.csv
+
+# Archived old project
+_archive_old/
