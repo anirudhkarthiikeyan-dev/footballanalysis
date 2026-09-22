@@ -55,6 +55,59 @@ CREATE INDEX idx_fact_match_home_team ON fact_match(home_team_id);
 CREATE INDEX idx_fact_match_away_team ON fact_match(away_team_id);
 CREATE INDEX idx_fact_match_date ON fact_match(date_id);
 
+-- European Performance module (20 selected clubs, UEFA Champions League
+-- only). fact_european_match is at the same one-row-per-match grain as
+-- fact_match; fact_club_season_europe is the pre-aggregated campaign
+-- table, and only has rows for seasons a club actually participated in
+-- - never a fabricated row for a season it didn't qualify for.
+CREATE TABLE dim_competition (
+    competition_id  INTEGER PRIMARY KEY,
+    name            TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE fact_european_match (
+    match_id                TEXT PRIMARY KEY,
+    competition_id           INTEGER NOT NULL REFERENCES dim_competition(competition_id),
+    season_id                INTEGER NOT NULL REFERENCES dim_season(season_id),
+    stage                    TEXT NOT NULL,   -- normalized: group_stage/league_phase/playoff_round/round_of_16/quarterfinal/semifinal/final
+    stage_order               INTEGER NOT NULL,
+    match_date                TEXT,
+    home_team_id              INTEGER REFERENCES dim_team(team_id),   -- NULL if the home side isn't one of the 20 selected clubs
+    away_team_id              INTEGER REFERENCES dim_team(team_id),   -- NULL if the away side isn't one of the 20 selected clubs
+    home_team_display          TEXT NOT NULL,  -- always populated (selected club's canonical name, or the opponent's raw source name)
+    away_team_display          TEXT NOT NULL,
+    home_goals                 INTEGER NOT NULL,
+    away_goals                 INTEGER NOT NULL,
+    result                     TEXT NOT NULL CHECK (result IN ('H','D','A')),
+    went_to_extra_time          INTEGER NOT NULL,  -- 0/1
+    decided_by_penalties        INTEGER NOT NULL,  -- 0/1
+    penalty_home_goals          INTEGER,
+    penalty_away_goals          INTEGER
+);
+
+CREATE INDEX idx_fact_eu_match_season ON fact_european_match(season_id);
+CREATE INDEX idx_fact_eu_match_home ON fact_european_match(home_team_id);
+CREATE INDEX idx_fact_eu_match_away ON fact_european_match(away_team_id);
+
+CREATE TABLE fact_club_season_europe (
+    team_id            INTEGER NOT NULL REFERENCES dim_team(team_id),
+    season_id          INTEGER NOT NULL REFERENCES dim_season(season_id),
+    competition_id      INTEGER NOT NULL REFERENCES dim_competition(competition_id),
+    matches_played       INTEGER NOT NULL,
+    wins                 INTEGER NOT NULL,
+    draws                INTEGER NOT NULL,
+    losses               INTEGER NOT NULL,
+    goals_for            INTEGER NOT NULL,
+    goals_against         INTEGER NOT NULL,
+    goal_difference        INTEGER NOT NULL,
+    win_pct                REAL NOT NULL,
+    goals_per_match         REAL NOT NULL,
+    clean_sheets            INTEGER NOT NULL,
+    finish_rank              INTEGER NOT NULL,  -- 1=group/league phase .. 5=semifinal, 6=runner-up, 7=winner
+    finish_label             TEXT NOT NULL,
+    PRIMARY KEY (team_id, season_id, competition_id)
+);
+
 -- FACT_TEAM_SEASON: pre-aggregated one row per team per season, used by
 -- the league table, team profile and trend pages without recomputing
 -- from fact_match every time.

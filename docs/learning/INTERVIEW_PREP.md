@@ -10,10 +10,11 @@ sources, loaded it into a star-schema SQLite database, and built an
 analytics layer — league tables, head-to-head records, player
 percentiles — that I checked against known real results, like
 Leicester's 2015/16 title. On top of that I built a Streamlit product
-with nine pages and a k-nearest-neighbors player similarity model, plus
-a Power BI-ready model with a full DAX measure library. Everything is
-tested — 32 passing pytest tests covering data quality, the database,
-and the analytics."
+with ten pages, a k-nearest-neighbors player similarity model, and a
+European Performance module comparing 20 major clubs' real Champions
+League record, plus a Power BI-ready model with a full DAX measure
+library. Everything is tested — 57 passing pytest tests covering data
+quality, the database, and the analytics."
 
 ## Explain this project in 3 minutes
 
@@ -143,6 +144,47 @@ is unsupervised nearest-neighbors, not a trained classifier/regressor);
 the leakage risk that does apply — mixing seasons with and without
 xG/xA — is explicitly guarded against by restricting the similarity
 search to 2022/23+ only.
+
+## How did you build the European Performance module?
+
+I sourced real UEFA Champions League match data (2012/13–2025/26) from
+a public-domain text archive, wrote a stateful parser for its
+`football.txt` format (tracking stage and date context line by line,
+since it isn't CSV), and filtered it to the 20 clubs named in the
+brief. The interesting problems were: the competition's own format
+changed partway through the range (an 8-group stage became a 36-team
+"Swiss model" league phase in 2024/25), so I normalized both onto one
+progression scale while documenting that they're not perfectly
+equivalent in difficulty; and knockout ties decided by penalties needed
+careful parsing to record real on-pitch goals separately from the
+shootout score, since a penalty isn't a goal. I verified the whole
+pipeline by checking every parsed final against independently known
+real results — all 11 checkable finals matched exactly — and by
+confirming clubs with limited Champions League history (Leicester City,
+Aston Villa) only show their real, actual participation seasons, not a
+fabricated full history.
+
+## Why extend `dim_team` instead of creating a separate European table?
+
+Because Manchester City, for example, needs to be the *same entity*
+whether you're looking at its Premier League record or its Champions
+League record — extending the existing dimension with the 11 new clubs
+means every fact table shares one `team_id` per club, which is what
+makes the Domestic vs Europe comparison page a simple filter-and-join
+instead of a name-matching problem.
+
+## What did testing catch during the European module build?
+
+A real bug: I initially mapped only the "Manchester City FC" name
+variant from the Champions League source to the canonical club, but
+the source also uses plain "Manchester City" in many matches —
+including a Champions League final. Without that second alias, those
+matches were silently excluded from the filtered dataset (they didn't
+error, they just vanished). A test checking the parsed data against
+known finals caught the gap immediately, which is exactly why "runs
+without errors" isn't the same as "correct" — I only found it because
+I tested against ground truth I already knew, not because the code
+complained.
 
 ## How would you scale this project?
 

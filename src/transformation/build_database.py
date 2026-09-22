@@ -6,6 +6,7 @@ import sqlite3
 
 import pandas as pd
 
+from src.analytics.european import club_season_campaigns
 from src.analytics.league_table import all_seasons_team_table
 from src.utils.seasons import PROJECT_ROOT
 
@@ -13,12 +14,14 @@ SCHEMA_PATH = PROJECT_ROOT / "database" / "schema.sql"
 DB_PATH = PROJECT_ROOT / "database" / "pl_intelligence.db"
 CLEAN_PATH = PROJECT_ROOT / "data" / "processed" / "matches_clean.csv"
 PLAYERS_CLEAN_PATH = PROJECT_ROOT / "data" / "processed" / "players_clean.csv"
+EU_CLEAN_PATH = PROJECT_ROOT / "data" / "processed" / "european_matches_clean.csv"
 TEAM_MASTER_PATH = PROJECT_ROOT / "data" / "external" / "team_master.csv"
 
 
 def build():
     matches = pd.read_csv(CLEAN_PATH, parse_dates=["match_date"])
     players = pd.read_csv(PLAYERS_CLEAN_PATH)
+    eu_matches = pd.read_csv(EU_CLEAN_PATH, parse_dates=["match_date"])
     team_master = pd.read_csv(TEAM_MASTER_PATH)
 
     if DB_PATH.exists():
@@ -145,10 +148,59 @@ def build():
     })
     fact_player_season.to_sql("fact_player_season", conn, if_exists="append", index=False)
 
+    # DIM_COMPETITION + FACT_EUROPEAN_MATCH + FACT_CLUB_SEASON_EUROPE
+    dim_competition = pd.DataFrame({"competition_id": [1], "name": ["UEFA Champions League"]})
+    dim_competition.to_sql("dim_competition", conn, if_exists="append", index=False)
+
+    fact_european_match = pd.DataFrame({
+        "match_id": eu_matches["match_id"],
+        "competition_id": 1,
+        "season_id": eu_matches["season"].map(season_to_id),
+        "stage": eu_matches["stage"],
+        "stage_order": eu_matches["stage_order"],
+        "match_date": eu_matches["match_date"].dt.strftime("%Y-%m-%d"),
+        "home_team_id": eu_matches["home_team"].map(team_to_id),
+        "away_team_id": eu_matches["away_team"].map(team_to_id),
+        "home_team_display": eu_matches["home_team_display"],
+        "away_team_display": eu_matches["away_team_display"],
+        "home_goals": eu_matches["home_goals"],
+        "away_goals": eu_matches["away_goals"],
+        "result": eu_matches["result"],
+        "went_to_extra_time": eu_matches["went_to_extra_time"].astype(int),
+        "decided_by_penalties": eu_matches["decided_by_penalties"].astype(int),
+        "penalty_home_goals": eu_matches["penalty_home_goals"],
+        "penalty_away_goals": eu_matches["penalty_away_goals"],
+    })
+    fact_european_match.to_sql("fact_european_match", conn, if_exists="append", index=False)
+
+    campaigns = club_season_campaigns(eu_matches)
+    fact_club_season_europe = pd.DataFrame({
+        "team_id": campaigns["club"].map(team_to_id),
+        "season_id": campaigns["season"].map(season_to_id),
+        "competition_id": 1,
+        "matches_played": campaigns["matches_played"],
+        "wins": campaigns["wins"],
+        "draws": campaigns["draws"],
+        "losses": campaigns["losses"],
+        "goals_for": campaigns["goals_for"],
+        "goals_against": campaigns["goals_against"],
+        "goal_difference": campaigns["goal_difference"],
+        "win_pct": campaigns["win_pct"],
+        "goals_per_match": campaigns["goals_per_match"],
+        "clean_sheets": campaigns["clean_sheets"],
+        "finish_rank": campaigns["finish_rank"],
+        "finish_label": campaigns["finish_label"],
+    })
+    fact_club_season_europe.to_sql("fact_club_season_europe", conn, if_exists="append", index=False)
+
     conn.commit()
 
     counts = {}
-    for table in ["dim_team", "dim_season", "dim_date", "fact_match", "fact_team_season", "dim_player", "fact_player_season"]:
+    for table in [
+        "dim_team", "dim_season", "dim_date", "fact_match", "fact_team_season",
+        "dim_player", "fact_player_season", "dim_competition", "fact_european_match",
+        "fact_club_season_europe",
+    ]:
         counts[table] = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
     conn.close()
 

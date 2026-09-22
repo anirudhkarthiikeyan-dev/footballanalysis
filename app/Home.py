@@ -65,11 +65,13 @@ with left:
 - **Head-to-Head** — full engine: overall record, recent form, biggest results, historical timeline
 - **Match Explorer** — filter and browse all 5,320 matches in the dataset
 - **Player Explorer** — per-90 stats and position-scoped percentiles, 2019/20–2025/26
+- **European Performance** — Champions League record for 20 major European clubs, 2012/13–2025/26
 - **Methodology** — how the numbers are built, and what isn't included and why
 """
     )
     st.markdown(
-        f'{badge("14 seasons")} {badge("5,320 matches")} {badge("37 clubs")} {badge("1,603 players")}',
+        f'{badge("14 seasons")} {badge("5,320 matches")} {badge("37 PL clubs")} '
+        f'{badge("1,603 players")} {badge("20 European clubs")}',
         unsafe_allow_html=True,
     )
 
@@ -81,6 +83,7 @@ with right:
 <b>Match data</b><br/>2012/13 – 2025/26, all 14 seasons<br/><br/>
 <b>Player data</b><br/>2019/20 – 2025/26 (7 seasons)<br/><br/>
 <b>Expected goals / assists</b><br/>2022/23 – 2025/26 only<br/><br/>
+<b>European data (Champions League)</b><br/>20 clubs, actual participation seasons only<br/><br/>
 <span style="color:#8b96ad;font-size:0.85rem;">Coverage gaps are real source limitations,
 documented in Methodology — not filled with invented numbers.</span>
 </div>

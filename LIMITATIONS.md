@@ -30,10 +30,32 @@ simplification worth knowing about.
 
 ## European Performance module
 
-**Not yet built.** The project brief calls for a 20-club Champions
-League comparison module; no Champions League match data has been
-sourced or ingested yet. This is the largest remaining gap — see
-`docs/PROJECT_PROGRESS.md` for the plan.
+Built and tested (real Champions League data, 20 clubs, 2012/13–2025/26).
+Specific limitations of this module:
+
+- **Source is community-maintained, not an official UEFA feed.** The
+  openfootball/champions-league archive is public-domain and sourced
+  primarily from Wikipedia (per its own `NOTES.md`). Every final in the
+  dataset was checked against independently known real results as
+  part of building this module, but the source isn't an official
+  competition data provider.
+- **Cross-era progression comparisons aren't perfectly apples-to-apples.**
+  The competition format changed from a traditional 8-group stage
+  (2012/13–2023/24) to a 36-team "Swiss model" league phase plus a
+  playoff round (2024/25+). Both are mapped onto one 1–7 progression
+  scale for comparability, but "reaching the knockout stage" meant a
+  different level of difficulty under each format.
+- **No player-level European statistics** — the source is match-level
+  only; there's no Champions League equivalent of the Player Explorer.
+- **European H2H is scoped to the 20 selected clubs.** Meetings against
+  clubs outside that list are covered by each club's "opponent
+  history" instead, using the opponent's raw source name (not
+  canonicalized, since building a full canonical mapping for every
+  club that's ever played in the Champions League was out of scope).
+- **Win/draw/loss counts each match leg individually** by its own
+  on-pitch result, matching standard competition-statistics
+  convention — a team can record a "win" in a leg of a tie it later
+  lost on aggregate or penalties. See `docs/methodology/METHODOLOGY.md`.
 
 ## Power BI
 

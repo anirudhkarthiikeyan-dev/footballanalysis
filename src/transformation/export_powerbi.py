@@ -14,8 +14,9 @@ DB_PATH = PROJECT_ROOT / "database" / "pl_intelligence.db"
 OUT_DIR = PROJECT_ROOT / "powerbi" / "model_exports"
 
 TABLES = [
-    "dim_team", "dim_season", "dim_date", "dim_player",
+    "dim_team", "dim_season", "dim_date", "dim_player", "dim_competition",
     "fact_match", "fact_team_season", "fact_player_season",
+    "fact_european_match", "fact_club_season_europe",
 ]
 
 

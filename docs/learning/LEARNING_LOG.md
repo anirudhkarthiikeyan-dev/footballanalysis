@@ -309,6 +309,120 @@ secrets) — commit the code that produces it, not the output itself.
 
 ---
 
+## Parsing semi-structured text data
+
+**What it means:** turning a human-readable but not machine-structured
+text format (not CSV, not JSON — a text listing with indentation and
+inline annotations meant to be readable) into a clean, tabular dataset.
+
+**Why used:** the Champions League source data
+(openfootball/champions-league) is published as a `football.txt`-format
+text listing — real, verified data, but not structured like the CSV
+sources used elsewhere in this project.
+
+**Where:** `src/cleaning/clean_european.py`.
+
+**What to understand:** semi-structured text needs a *stateful* parser,
+not a single regex — you track context line by line (current stage,
+current date) and apply different regexes for different line types
+(stage headers start with "▪", date lines match a weekday+month
+pattern, match lines have team names and a score expression). Getting
+the *score expression* right required understanding the domain first:
+`"3-4 pen. 1-1 a.e.t. (1-1, 0-1)"` needs football knowledge (penalty
+shootouts aren't goals) to parse correctly, not just regex skill.
+
+**Example from this project:** the parser self-validates by comparing
+its own parsed match count against each source file's own declared
+`"# Matches NNN"` header — a cheap, source-provided ground truth that
+catches parser bugs immediately rather than downstream.
+
+**Interview question:** "How do you validate a parser you wrote for a
+format you don't control?"
+
+**How to explain it:** where the source provides any independently
+computable check (a declared row count, a checksum, a known total),
+use it as an automated assertion rather than trusting that "it ran
+without errors" means it parsed correctly. Where the source doesn't
+provide that, validate against external ground truth you can verify
+independently — this project checked every parsed Champions League
+final against real, well-known historical results.
+
+---
+
+## Handling format drift within one data source
+
+**What it means:** a single source's structure can change over time
+(a competition reformats, a schema evolves) — a robust pipeline
+normalizes those variants to one consistent shape rather than assuming
+the format is static.
+
+**Why used:** the Champions League changed formats partway through this
+project's date range — an 8-group stage (2012/13–2023/24) became a
+36-team "Swiss model" league phase (2024/25+), with different stage
+names in the source text (`"Group A"` vs `"League, Matchday 3"`) and an
+extra round (`"Playoffs"`) that didn't exist before. The source even
+contains a literal spelling inconsistency (`"Gruppe G"`/`"Gruppe H"`,
+German for "Group", for three consecutive seasons).
+
+**Where:** `src/cleaning/clean_european.py::normalize_stage`,
+`src/analytics/european.py` (the 1–7 progression scale).
+
+**What to understand:** normalizing format drift is a modeling choice
+with a real tradeoff, not a free win — collapsing "8-group stage" and
+"36-team league phase" onto the same "tier 1" of a progression scale
+makes cross-era comparison *possible*, but the two formats aren't
+equally difficult to advance from, and that limitation has to be
+documented, not hidden by the normalization.
+
+**Example from this project:** `docs/methodology/METHODOLOGY.md` and
+`LIMITATIONS.md` both explicitly flag this — normalizing data for
+comparability doesn't mean claiming the comparison is perfect.
+
+**Interview question:** "What do you do when a data source's schema
+changes partway through the history you're analyzing?"
+
+**How to explain it:** normalize to one consistent representation so
+downstream code and analysis doesn't need to special-case every era,
+but document exactly what the normalization glosses over — silently
+normalizing away a real structural difference is how misleading
+comparisons happen.
+
+---
+
+## Extending a schema without forking it
+
+**What it means:** when a new feature needs new fact tables, deciding
+whether to extend existing dimension tables or create parallel ones.
+
+**Why used:** the European Performance module needed 11 clubs that
+aren't in the Premier League — the question was whether to give them a
+separate `dim_team_european` or add them to the existing `dim_team`.
+
+**Where:** `src/transformation/build_database.py` — `dim_team` is built
+from the *union* of every canonical name in `team_master.csv`, so
+adding the 11 new clubs there was enough; no schema change to
+`dim_team` itself was needed, and `fact_european_match` /
+`fact_club_season_europe` reference the exact same `team_id` values
+the Premier League fact tables use.
+
+**What to understand:** this is what makes cross-domain analysis
+(Domestic vs Europe) possible without a manual join or name-matching
+step at query time — Manchester City has exactly one `team_id`, shared
+across every fact table it appears in. A parallel dimension table would
+have needed a separate mapping layer to compare the two.
+
+**Interview question:** "When would you add rows to an existing
+dimension table versus create a new one?"
+
+**How to explain it:** if the new entities are the same *kind* of
+thing the dimension already models (here: football clubs) and might
+need to be joined against the same facts or compared across domains,
+extend the existing dimension. Create a new one when the entities are
+genuinely a different kind of thing, or when the join patterns never
+overlap.
+
+---
+
 ## End-to-end architecture / data storytelling
 
 **What it means:** designing the whole pipeline — source to

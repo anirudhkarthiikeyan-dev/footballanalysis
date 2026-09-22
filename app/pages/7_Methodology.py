@@ -79,6 +79,29 @@ Full writeup in `src/ml/player_similarity.py`.
 )
 
 divider()
+st.subheader("European Performance module")
+st.markdown(
+    """
+**Scope:** the 20 clubs named in the project brief, UEFA Champions League only, 2012/13–2025/26.
+A club appears for a season only if it actually played in that season's competition — verified for
+clubs with limited history (e.g. Leicester City's only campaign in range is 2016/17).
+
+**Source:** [openfootball/champions-league](https://github.com/openfootball/champions-league), a
+public-domain structured text archive.
+
+**On-pitch goals vs penalties:** a shootout score is recorded separately from real goals scored —
+never counted as a goal. Every final in the dataset was checked against independently known real
+results as part of building this module.
+
+**Cross-era progression scale:** seasons before 2024/25 used a traditional 8-group format; 2024/25+
+uses a 36-team "Swiss model" league phase. Both are mapped to one 1–7 progression scale for
+comparability, with the caveat that the two formats aren't perfectly equivalent in difficulty.
+
+Full detail in `docs/methodology/METHODOLOGY.md`.
+"""
+)
+
+divider()
 st.subheader("What's intentionally not shown")
 st.markdown(
     """
@@ -86,8 +109,7 @@ st.markdown(
 - **No xG/xA before 2022/23** — not tracked by the source; shown as blank, not zero.
 - **No fabricated advanced metrics** (progressive passes, pressures, etc.) — not available from a
   free, reliable source across enough of the historical range to be worth including.
-- **European Performance module** (20-club Champions League comparison) is on the project roadmap —
-  see `docs/PROJECT_PROGRESS.md` for current status.
+- **No player-level European statistics** — the Champions League source is match-level only.
 """
 )
 

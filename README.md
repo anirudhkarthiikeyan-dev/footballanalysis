@@ -49,16 +49,23 @@ errors"), and shipping a usable product on top — in both a BI tool
 - **Streamlit product** (`app/`) — Home (with cinematic visual-only
   intro), League Table, League Trends, Team Explorer (profile +
   comparison), Head-to-Head, Match Explorer, Player Explorer (explorer,
-  profile, comparison, similarity), Methodology, About.
-- **Tests** (`tests/`) — 32 pytest tests covering data quality, database
-  integrity, analytics correctness and the ML module. All passing.
+  profile, comparison, similarity), Methodology, About, and European
+  Performance (club profile, comparison, European H2H, domestic vs
+  Europe).
+- **European Performance module** — real UEFA Champions League data
+  (2012/13–2025/26) for the 20 clubs named in the project brief,
+  parsed from a public-domain source, filtered to each club's actual
+  participation seasons (no fabricated campaigns), verified against 11
+  independently known real finals.
+- **Tests** (`tests/`) — 57 pytest tests covering data quality, database
+  integrity, analytics correctness, the ML module, and the European
+  module. All passing.
 
 ## What's not built yet
 
 See `docs/PROJECT_PROGRESS.md` and `LIMITATIONS.md` for the full,
-honest list. Headline items: the 20-club European Performance module,
-a compiled `.pbix` file, and the full learning-log/interview-prep set
-promised by the original project brief.
+honest list. Headline items: a compiled `.pbix` file and the full
+learning-log/interview-prep set promised by the original project brief.
 
 ---
 
@@ -102,8 +109,10 @@ and `LIMITATIONS.md` for why) — run the pipeline once after cloning:
 ```bash
 python -m src.ingestion.fetch_matches
 python -m src.ingestion.fetch_players
+python -m src.ingestion.fetch_european
 python -m src.cleaning.clean_matches
 python -m src.cleaning.clean_players
+python -m src.cleaning.clean_european
 python -m src.transformation.build_database
 python -m src.transformation.export_powerbi
 ```

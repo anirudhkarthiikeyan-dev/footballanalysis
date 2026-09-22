@@ -134,3 +134,44 @@ VAR TotalPlayers = COUNTROWS(ALLSELECTED(dim_player[player_id]))
 VAR CurrentRank = [Goals per 90 Rank]
 RETURN
     DIVIDE(TotalPlayers - CurrentRank, TotalPlayers - 1, 0) * 100
+
+// ---------------------------------------------------------------- European Performance (FACT_CLUB_SEASON_EUROPE)
+// Grain: one row per club per Champions League campaign it actually
+// played (no row exists for a season a club didn't qualify for).
+
+EU Campaigns := COUNTROWS(fact_club_season_europe)
+
+EU Matches Played := SUM(fact_club_season_europe[matches_played])
+
+EU Wins := SUM(fact_club_season_europe[wins])
+
+EU Win % :=
+DIVIDE([EU Wins], [EU Matches Played], 0)
+
+EU Goals For := SUM(fact_club_season_europe[goals_for])
+
+EU Goals Against := SUM(fact_club_season_europe[goals_against])
+
+EU Goals per Match :=
+DIVIDE([EU Goals For], [EU Matches Played], 0)
+
+EU Best Finish (Rank) :=
+MAX(fact_club_season_europe[finish_rank])
+// 1=Group/League Phase, 2=Playoff Round, 3=Round of 16, 4=Quarterfinal,
+// 5=Semifinal, 6=Runner-up, 7=Winner — map back to finish_label for display.
+
+// Match-level (FACT_EUROPEAN_MATCH) — for a page filtered to one club's matches:
+
+EU Match Wins (incl. shootouts) :=
+CALCULATE(
+    COUNTROWS(fact_european_match),
+    FILTER(
+        fact_european_match,
+        (fact_european_match[result] = "H")
+            || (fact_european_match[decided_by_penalties] = 1 && fact_european_match[penalty_home_goals] > fact_european_match[penalty_away_goals])
+    )
+)
+// NOTE: this counts the match as a "win" from the home side's
+// perspective only — apply on a visual already filtered to one club's
+// matches (home or away), consistent with how FACT_CLUB_SEASON_EUROPE
+// itself is computed (see src/analytics/european.py).

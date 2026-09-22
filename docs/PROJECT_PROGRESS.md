@@ -1,5 +1,91 @@
 # Project Progress
 
+## 2026-09-22 — European Performance module
+
+### Completed (built, run, and verified — not just planned)
+
+- **Sourced real Champions League data.** Found and validated
+  openfootball/champions-league, a public-domain, structured text
+  archive covering every UEFA Champions League match 2012/13–2025/26.
+  Downloaded all 14 season files (`src/ingestion/fetch_european.py`).
+- **Built a text-format parser** (`src/cleaning/clean_european.py`)
+  handling: mixed date formats, stage-header naming that changed
+  across eras (including a literal source typo, "Gruppe G"/"Gruppe H"),
+  and knockout legs decided by extra time/penalties — with on-pitch
+  goals recorded separately from penalty-shootout scores. The parser
+  self-validates against each season file's own declared match count.
+- **Extended `team_master.csv`** with 28 new raw-name aliases: 11 new
+  non-Premier-League clubs (Real Madrid, Barcelona, Atlético Madrid,
+  Sevilla, Valencia, Bayern Munich, Borussia Dortmund, Bayer
+  Leverkusen, RB Leipzig, Juventus, Inter Milan) plus Champions-League-
+  specific name variants for the 9 Premier League clubs already in
+  scope. Caught and fixed two real gaps during testing (a missing
+  "Manchester City"/"Manchester United" plain-name alias that was
+  silently excluding some of their matches, including a Champions
+  League final, from the filtered dataset — found via a failing test,
+  not assumed away).
+- **Verified against real football history**: all 11 independently
+  checkable finals 2012/13–2023/24 match known results exactly (Bayern
+  2-1 Dortmund 2013; Real Madrid 4-1 aet Atlético 2014; Man City 1-0
+  Inter Milan 2023; etc.). Leicester City's and Aston Villa's real,
+  well-known limited Champions League histories (2016/17 only; 2024/25
+  only) are reproduced exactly — no fabricated seasons.
+- **Extended the database**: `dim_competition`, `fact_european_match`
+  (1,326 rows), `fact_club_season_europe` (174 rows — one row per club
+  per season actually played, not 20×14). `dim_team` extended from 37
+  to 48 clubs.
+- **Built the analytics engine** (`src/analytics/european.py`):
+  campaign aggregation (with a documented convention for how a
+  penalty-shootout-decided tie is counted in win/draw/loss tallies),
+  a cross-era 1–7 progression scale, opponent history, European H2H,
+  and a domestic-vs-Europe comparison that explicitly flags the two
+  competitions' different structures rather than implying equivalence.
+- **Built and manually verified the Streamlit page**
+  (`app/pages/9_European_Performance.py`, 4 tabs: Club Profile,
+  Comparison, European H2H, Domestic vs Europe) live in a browser — no
+  console errors, real data confirmed in every tab.
+- **25 new tests** (data parsing, database integrity, analytics
+  correctness) — full suite now 57 passing tests, up from 32.
+- **Power BI model extended**: 3 new tables exported, new DAX measures
+  for European campaigns documented in `powerbi/dax/measures.dax`.
+- **Docs updated**: DATA_SOURCES, DATA_DICTIONARY, ARCHITECTURE,
+  METHODOLOGY, LIMITATIONS, FUTURE_IMPROVEMENTS, README, in-app
+  Methodology page, and this file.
+- **Existing Premier League functionality confirmed unchanged** — all
+  32 original tests still pass; the only changes to already-shipped
+  code were additive (new rows in `team_master.csv`, new tables in the
+  schema/build script).
+- **No audio/music added**, per this session's explicit instruction.
+
+### Decisions made without stopping to ask
+
+- Excluded 3 of the source's own name variants from being needed by
+  verifying every raw team-name string actually used for the 20 clubs
+  across all 14 files, rather than adding aliases reactively — still
+  caught and fixed 2 real gaps via failing tests (see above).
+- Counted a penalty-shootout-decided tie's individual leg by its own
+  real on-pitch result for win/draw/loss purposes (standard
+  competition-statistics convention), not as an automatic draw for
+  both legs.
+- Scoped "European H2H" to the 20 selected clubs only (meetings
+  against other clubs are covered by Opponent History instead) —
+  building a full canonical name list for every club that's ever
+  played in the Champions League was out of scope.
+- Mapped both competition formats (pre-2024/25 groups, 2024/25+ Swiss
+  model) onto one progression scale rather than tracking them
+  separately, with the comparability caveat documented in three places
+  (METHODOLOGY.md, LIMITATIONS.md, the in-app Methodology page).
+
+### Not yet built
+
+- Compiled `.pbix` file (still blocked on Power BI Desktop availability).
+- Canonical names for non-selected European opponents (they display
+  with their raw source name).
+- Europa League / Conference League (out of scope per the brief).
+- Full learning log / interview prep expansion (unchanged from last session).
+
+---
+
 ## 2026-09-22 — Initial build
 
 ### Completed (built, run, and verified — not just planned)
@@ -58,7 +144,7 @@
 ### Not yet built (see LIMITATIONS.md and FUTURE_IMPROVEMENTS.md)
 
 - European Performance module (20-club Champions League comparison) —
-  no CL match data sourced yet.
+  **since built; see the entry above this one, dated the same day.**
 - Compiled `.pbix` file.
 - Playwright automated UI test suite (manual browser verification was
   done instead).
@@ -68,7 +154,6 @@
 
 ### Next session should start with
 
-1. Source Champions League match data for the European module (check
-   football-data.co.uk's European competition CSVs first).
-2. If Power BI Desktop becomes available, build and commit the `.pbix`.
-3. Expand `docs/learning/LEARNING_LOG.md` and `INTERVIEW_PREP.md`.
+*(Superseded by the entry above — the European module was completed
+same-day. Remaining open items: compiled `.pbix`, learning log/interview
+prep expansion, Playwright tests, public deployment.)*
