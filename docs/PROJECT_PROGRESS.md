@@ -1,5 +1,57 @@
 # Project Progress
 
+## 2026-09-23 — Power BI Desktop now available: model verified, docs finalized
+
+Power BI Desktop became available on the user's machine. No PL or
+European module code was touched this session (explicitly out of
+scope per the user's instructions) — this was inspection plus Power
+BI-side documentation only.
+
+### Verified (inspection only, nothing rebuilt)
+
+- All 10 `powerbi/model_exports/*.csv` files exist and their row
+  counts match `database/pl_intelligence.db` exactly (header row
+  excluded): `dim_team` 48, `dim_season` 14, `dim_date` 1,544,
+  `dim_player` 1,603, `dim_competition` 1, `fact_match` 5,320,
+  `fact_team_season` 280, `fact_player_season` 3,799,
+  `fact_european_match` 1,326, `fact_club_season_europe` 174. No
+  re-export was needed.
+- CSV encoding confirmed UTF-8 (relevant for accented club names like
+  "Atlético Madrid").
+- Git repository state confirmed clean; no rebuild of the PL or
+  European modules performed or needed.
+
+### Completed (Power BI documentation, prepared for the user to execute in Desktop)
+
+- Rewrote `powerbi/README.md`'s build steps as a literal, ordered
+  checklist (Import → Relationships → Measures → Pages) with exact
+  click sequences, matching row counts to self-check against, and a
+  concrete explanation of the home/away dual-relationship behavior
+  (Power BI auto-marks the second one inactive — expected, not an
+  error).
+- Added 6 new DAX measures (`H2H Team A Id`, `H2H Team B Id`,
+  `H2H Meetings`, `H2H Team A Wins`, `H2H Team B Wins`, `H2H Draws`) to
+  `powerbi/dax/measures.dax` — the previous session's page table listed
+  a Head-to-Head page but never provided the DAX for it, and the
+  existing relationships genuinely can't express "matches where either
+  side is one of two selected teams" without them. Documented with the
+  disconnected-slicer-table setup they require. Total measures: 48.
+- `powerbi/dax/measures.dax` is still **unexecuted DAX** — written and
+  reviewed against the schema, but not yet opened in Power BI Desktop.
+  This is flagged explicitly in the README so it isn't mistaken for
+  verified-working.
+
+### Not yet done
+
+- The actual `.pbix` file — this requires manual work in Power BI
+  Desktop on the user's machine (import, wire relationships, paste
+  measures, build pages), which Claude cannot do remotely. The
+  checklist above is designed to make that close to mechanical.
+- Confirming the 48 DAX measures actually evaluate without error in
+  Desktop (can't be verified from this environment).
+
+---
+
 ## 2026-09-22 — Global Search + Playwright browser test suite
 
 ### Completed (built, run, and verified — not just planned)

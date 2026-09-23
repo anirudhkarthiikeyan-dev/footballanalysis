@@ -175,3 +175,66 @@ CALCULATE(
 // perspective only — apply on a visual already filtered to one club's
 // matches (home or away), consistent with how FACT_CLUB_SEASON_EUROPE
 // itself is computed (see src/analytics/european.py).
+
+// ---------------------------------------------------------------- Head-to-Head (FACT_MATCH, two disconnected slicer tables)
+// A H2H page needs "matches where EITHER side is Team A or Team B" -
+// something the dim_team -> fact_match relationship can't express with
+// a normal slicer (a slicer on dim_team filters home OR away, not the
+// "this specific pair, either way round" condition H2H needs).
+//
+// Setup (see powerbi/README.md "Head-to-Head page" for full steps):
+//   1. Model view -> New Table -> paste:  'Team A Selector' = VALUES(dim_team[canonical_name])
+//   2. Repeat for 'Team B Selector' = VALUES(dim_team[canonical_name])
+//   3. Confirm NEITHER new table has a relationship line to anything
+//      else in Model view (delete one if Power BI auto-created it) -
+//      they must stay disconnected for SELECTEDVALUE below to work
+//      independently of the normal filter/relationship graph.
+//   4. Put a slicer for each table's [canonical_name] column on the page.
+
+H2H Team A Id :=
+LOOKUPVALUE(dim_team[team_id], dim_team[canonical_name], SELECTEDVALUE('Team A Selector'[canonical_name]))
+
+H2H Team B Id :=
+LOOKUPVALUE(dim_team[team_id], dim_team[canonical_name], SELECTEDVALUE('Team B Selector'[canonical_name]))
+
+H2H Meetings :=
+VAR TeamAId = [H2H Team A Id]
+VAR TeamBId = [H2H Team B Id]
+RETURN
+CALCULATE(
+    COUNTROWS(fact_match),
+    FILTER(
+        fact_match,
+        (fact_match[home_team_id] = TeamAId && fact_match[away_team_id] = TeamBId)
+            || (fact_match[home_team_id] = TeamBId && fact_match[away_team_id] = TeamAId)
+    )
+)
+
+H2H Team A Wins :=
+VAR TeamAId = [H2H Team A Id]
+VAR TeamBId = [H2H Team B Id]
+RETURN
+CALCULATE(
+    COUNTROWS(fact_match),
+    FILTER(
+        fact_match,
+        (fact_match[home_team_id] = TeamAId && fact_match[away_team_id] = TeamBId && fact_match[result] = "H")
+            || (fact_match[home_team_id] = TeamBId && fact_match[away_team_id] = TeamAId && fact_match[result] = "A")
+    )
+)
+
+H2H Team B Wins :=
+VAR TeamAId = [H2H Team A Id]
+VAR TeamBId = [H2H Team B Id]
+RETURN
+CALCULATE(
+    COUNTROWS(fact_match),
+    FILTER(
+        fact_match,
+        (fact_match[home_team_id] = TeamBId && fact_match[away_team_id] = TeamAId && fact_match[result] = "H")
+            || (fact_match[home_team_id] = TeamAId && fact_match[away_team_id] = TeamBId && fact_match[result] = "A")
+    )
+)
+
+H2H Draws :=
+[H2H Meetings] - [H2H Team A Wins] - [H2H Team B Wins]
