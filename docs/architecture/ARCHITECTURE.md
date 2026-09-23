@@ -24,8 +24,7 @@ data/processed/  (matches_clean.csv, players_clean.csv, european_matches_clean.c
 database/pl_intelligence.db  (star schema: DIM_* / FACT_*)
    │  src/analytics/*.py  (league table, H2H, team/player stats, European campaigns)
    │  src/ml/player_similarity.py  (KNN similarity)
-   ├──► app/  (Streamlit product — reads processed CSVs + the DB)
-   └──► src/transformation/export_powerbi.py ──► powerbi/model_exports/*.csv ──► Power BI
+   └──► app/  (Streamlit product — reads processed CSVs + the DB — the final dashboard layer)
 ```
 
 Every stage is a standalone, re-runnable script (`python -m src.<stage>.<script>`)
@@ -44,9 +43,11 @@ scale (more competitions, event-level data) would move to Postgres.
 
 `FACT_MATCH`, `FACT_TEAM_SEASON` and `FACT_PLAYER_SEASON` each have a
 single clear grain, joined to shared dimensions (`DIM_TEAM`,
-`DIM_SEASON`, `DIM_DATE`, `DIM_PLAYER`). This is the same shape the
-Power BI model uses directly (see `powerbi/README.md`) — no separate
-"BI version" of the schema to keep in sync.
+`DIM_SEASON`, `DIM_DATE`, `DIM_PLAYER`). This kept the schema clean
+enough that a star-schema BI export (evaluated during development, see
+`docs/PROJECT_PROGRESS.md`) would have needed no separate "BI version"
+of the schema — though that path was ultimately not pursued for the
+final product.
 
 ## Why the Streamlit app reads both the DB and the CSVs
 
@@ -81,9 +82,14 @@ tables. See `docs/data/DATA_SOURCES.md` for the source (a public-domain
 text-format archive) and `src/cleaning/clean_european.py` for the
 parsing approach.
 
-## Not yet built
+## Streamlit as the single dashboard layer
 
-- A real `.pbix` file (model + DAX are ready; building the file itself
-  requires Power BI Desktop, not available in this build environment).
+A Power BI export path (star-schema CSVs + a 48-measure DAX library)
+was built and evaluated during development, and the model was
+successfully opened and wired in Power BI Desktop — see
+`_archive_old/powerbi_exploration/` for that work, preserved unedited.
+It was then intentionally dropped so the project ships one finished
+dashboard instead of two partial ones. Nothing in the current
+architecture depends on it.
 
-See `docs/PROJECT_PROGRESS.md` for current status.
+See `docs/PROJECT_PROGRESS.md` for current status and the descoping decision.

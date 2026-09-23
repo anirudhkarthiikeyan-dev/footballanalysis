@@ -22,7 +22,13 @@ Thumbs.db
 data/raw/
 data/processed/
 database/*.db
-powerbi/model_exports/*.csv
+
+# Power BI was explored during development and then descoped from the
+# final product (Streamlit-only) - see docs/PROJECT_PROGRESS.md. Any
+# leftover local exports/.pbix files (e.g. from Power BI Desktop still
+# having them open) are personal artifacts, not part of the repo.
+powerbi/
+*.pbix
 
 # Archived old project
 _archive_old/

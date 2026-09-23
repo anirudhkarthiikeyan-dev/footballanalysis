@@ -1,6 +1,21 @@
-# PL Intelligence — Power BI Model
+# PL Intelligence — Power BI Model (descoped, archived)
 
-## Status
+## This is no longer part of the PL Intelligence product
+
+Power BI was explored during development — a real star-schema export
+and a 48-measure DAX library were built and documented (below), and
+the model was successfully opened and wired up in Power BI Desktop.
+It was then **intentionally dropped** in favor of a Streamlit-only
+final product, to keep the deliverable focused rather than maintaining
+two parallel dashboard layers. See `docs/PROJECT_PROGRESS.md` for the
+decision and date.
+
+**Nothing here is required to run PL Intelligence.** The files below
+are kept only as an honest record of the exploration — not because
+Power BI is a build dependency. The rest of this document is the
+original build guide, unedited, for reference.
+
+## Original status note (kept for history)
 
 This folder contains a **real, working data model export and full DAX
 documentation**. No `.pbix` is committed to the repo yet (Power BI

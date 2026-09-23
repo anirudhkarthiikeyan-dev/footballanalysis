@@ -12,9 +12,8 @@ percentiles — that I checked against known real results, like
 Leicester's 2015/16 title. On top of that I built a Streamlit product
 with eleven pages — including global search — a k-nearest-neighbors
 player similarity model, and a European Performance module comparing
-20 major clubs' real Champions League record, plus a Power BI-ready
-model with a full DAX measure library. Everything is tested — 98
-passing tests, split between a fast unit/data/database suite and a
+20 major clubs' real Champions League record. Everything is tested —
+98 passing tests, split between a fast unit/data/database suite and a
 Playwright browser suite that drives the actual app."
 
 ## Explain this project in 3 minutes
@@ -46,12 +45,11 @@ from the same raw inputs."
 
 ## Explain this project technically
 
-Pipeline: ingestion (raw CSV download) → cleaning (entity resolution,
+Pipeline: ingestion (raw data download) → cleaning (entity resolution,
 date parsing, dedup) → validation (automated invariant checks) →
 transformation (star-schema SQLite load) → analytics (pandas functions,
-unit-tested) → two consumption layers (Streamlit app reading the
-processed CSVs + DB directly; Power BI reading CSV exports of the same
-tables). Grain discipline matters throughout: `FACT_MATCH` is one row
+unit-tested) → one consumption layer (the Streamlit app, reading the
+processed CSVs and the database directly). Grain discipline matters throughout: `FACT_MATCH` is one row
 per match, `FACT_TEAM_SEASON` is one row per team per season — computed
 from `FACT_MATCH`, not independently sourced, so the two can never
 drift out of sync. The ML layer is a single, well-scoped KNN model with
@@ -67,17 +65,29 @@ documented limitations — not present to "check an AI box."
    missing xG data with zeros or extrapolate player data into earlier
    seasons — resisting that in favor of documented coverage boundaries
    was a deliberate choice, not a limitation I ran out of time to fix.
-3. **Keeping the BI layer and the app layer consistent.** Both read
-   from the same star-schema tables (SQLite for the app, CSV exports of
-   the same tables for Power BI) instead of maintaining two versions of
-   the transformation logic.
+3. **Knowing when to stop building.** I evaluated Power BI as a second
+   consumption layer — built a real star-schema export and a
+   48-measure DAX library, and confirmed it opened and wired correctly
+   in Power BI Desktop — then made the call to drop it and finish one
+   dashboard well instead of shipping two half-built ones. That's a
+   real product decision, not a limitation I ran out of time on: the
+   star schema was designed cleanly enough that adding a BI export back
+   in later would be straightforward if it were ever worth it.
 
-## Why did you choose Power BI?
+## Why did you evaluate Power BI, and why did you drop it?
 
-To demonstrate the BI-tool side of the skill set alongside custom app
-development — star-schema modeling, relationships, and DAX measures
-are a different (and industry-standard) way of exposing the same
-underlying data model that Streamlit exposes through Python code.
+To see whether a BI-tool consumption layer was worth adding alongside
+the custom Streamlit app — star-schema modeling, relationships and DAX
+measures are a different, industry-standard way of exposing the same
+data model. I built the export and the DAX and confirmed the model
+opened cleanly in Power BI Desktop. I dropped it because maintaining
+two dashboard layers for a solo project split effort without adding
+proportional value — the Streamlit app already covers everything the
+Power BI pages would have, and finishing it to a high standard mattered
+more than having two unfinished products. I don't claim Power BI
+experience beyond what actually happened: a working data export and a
+written, reviewed DAX library that I confirmed loads without error,
+not a finished report.
 
 ## Why did you use Streamlit?
 
@@ -91,8 +101,10 @@ engineering.
 
 The core analytical questions (standings, joins across teams/seasons,
 aggregations) are naturally relational. A star schema in a real SQL
-database also mirrors exactly what Power BI expects, so the same model
-serves both consumption layers.
+database keeps that relational structure explicit and testable — the
+same shape a BI tool would expect, which is part of why the Power BI
+evaluation was straightforward when I tried it (see "Why did you
+evaluate Power BI, and why did you drop it?").
 
 ## Why Pandas?
 

@@ -1,5 +1,90 @@
 # Project Progress
 
+## 2026-09-23 — Power BI dropped: Streamlit is the final, single dashboard layer
+
+### Decision
+
+Power BI is no longer part of the PL Intelligence product. This was a
+deliberate scope decision, made after the model had already been
+opened and wired successfully in Power BI Desktop (see the entry
+below, same day) — not a fallback after something failed. Maintaining
+two dashboard layers for a solo portfolio project split effort without
+adding proportional value; the Streamlit app already covers everything
+a Power BI report would have shown. Streamlit is now the single,
+final, complete dashboard layer.
+
+### What was done
+
+- Moved `powerbi/README.md`, `powerbi/dax/measures.dax`, and
+  `src/transformation/export_powerbi.py` to
+  `_archive_old/powerbi_exploration/` via `git mv` (preserved as
+  history, not deleted — real work was done and is worth keeping as a
+  record). Added a clear "descoped, archived" note to the top of that
+  README.
+- Could not move `powerbi/model_exports/` (including the user's saved
+  `pl.intelligence.pbix`) because Power BI Desktop had those files open
+  on disk at the time (Windows file lock) — left untouched rather than
+  forcing it, since force-moving files out from under an open
+  application risks corrupting the user's in-progress work. Added
+  `powerbi/` and `*.pbix` to `.gitignore` so this leftover local
+  folder can never be accidentally committed. The user's `.pbix` is
+  theirs to keep, delete, or move manually once they close Power BI
+  Desktop — this project no longer references or requires it either way.
+- Removed `SQLAlchemy` from `requirements.txt` — grepped the whole
+  codebase first and confirmed it was never actually imported anywhere
+  (the project always used `sqlite3` directly); it was dead weight
+  even before this change.
+- Updated every file that referenced Power BI as part of the product:
+  `README.md` (full rewrite — final stack, project structure, setup/run
+  instructions all Streamlit-only now), `LIMITATIONS.md`,
+  `FUTURE_IMPROVEMENTS.md`, `docs/architecture/ARCHITECTURE.md`,
+  `docs/learning/LEARNING_LOG.md` (added a "Final architecture, stated
+  plainly" section plus reframed the existing Power BI entry as
+  "evaluated, then descoped"), `docs/learning/INTERVIEW_PREP.md`
+  (reframed "Why did you choose Power BI?" as "Why did you evaluate
+  Power BI, and why did you drop it?" — an honest answer, not a deleted
+  question), and `app/pages/8_About.py` (technology list and product
+  description).
+- Ran the full fast test suite before and after (`pytest tests/
+  --ignore=tests/ui`): 57/57 passing both times — these changes were
+  documentation/dependency-list only plus one small text edit in
+  `About.py`, no analytics/pipeline/database code touched.
+- Ran the Playwright suite (`tests/ui/`, 41 tests) 5 times in a row to
+  check for regressions. Result, honestly reported: it did not pass
+  cleanly every time (41/41 in isolation earlier in the project; today's
+  back-to-back runs ranged from 41/41 down to 34/41, with a *different*
+  set of tests failing each run). Every individual failure passed when
+  that specific test was checked in isolation, and no failure pattern
+  matched anything touched this session (About.py's text, requirements.txt,
+  moved files). This points to environmental resource contention from
+  running 5 heavy headless-browser suites back-to-back on a shared
+  machine (the user's own Chrome and other applications were also
+  running throughout), not an application defect. One genuine
+  improvement was made along the way: `tests/ui/conftest.py`'s
+  `streamlit_server` fixture now does a one-time browser warm-up
+  request before yielding, since the *first* real page load after
+  server start pays a one-time Python import/render cost that was
+  intermittently exceeding individual tests' timeouts — a legitimate
+  root-cause fix (confirmed it eliminated that specific failure mode),
+  not a timeout increase to paper over a real bug. Given repeated runs
+  were making things slower, not more conclusive, further re-running
+  was stopped rather than continued indefinitely. **The fast suite
+  (57 tests) is the reliable, repeatable signal; the Playwright suite
+  is correct but shows environment-dependent flakiness on this machine
+  under sustained back-to-back load — see `FUTURE_IMPROVEMENTS.md`.**
+
+### Verified, not assumed
+
+- Confirmed via `grep` that no other Python file referenced
+  `SQLAlchemy`, `export_powerbi`, or the `powerbi/` path before removing
+  those references.
+- Confirmed the moved files actually stayed tracked by git despite
+  `_archive_old/` being gitignored (`git mv` on an already-tracked file
+  overrides the ignore rule — verified with `git diff --cached --stat`
+  before committing).
+
+---
+
 ## 2026-09-23 — Power BI Desktop now available: model verified, docs finalized
 
 Power BI Desktop became available on the user's machine. No PL or

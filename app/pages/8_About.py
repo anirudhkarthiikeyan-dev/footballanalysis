@@ -20,8 +20,8 @@ st.markdown(
     """
 **PL INTELLIGENCE** is an end-to-end Premier League football analytics product covering 2012/13–2025/26,
 built as a portfolio-grade demonstration of the full data analytics stack: ingestion, cleaning,
-validation, a star-schema SQL database, an analytics/ML layer, a Power BI-ready model, and a
-custom Streamlit product.
+validation, a star-schema SQLite database, an analytics/ML layer, and a custom Streamlit product —
+the single, final dashboard layer for the project.
 
 ### Why this project exists
 To demonstrate — end to end, on real public data — the workflow a data analyst or data scientist
@@ -29,7 +29,7 @@ uses in practice: sourcing and validating imperfect real-world data, building a 
 computing analytics that are checked against known ground truth, and shipping a usable product on top.
 
 ### Technology
-Python · Pandas · NumPy · SQLite · scikit-learn · Plotly · Streamlit · Power BI · DAX · pytest
+Python · Pandas · NumPy · SQLite · scikit-learn · Plotly · Streamlit · pytest · Playwright
 
 ### Data honesty policy
 Every number in this product traces back to a documented public source. Where a metric isn't

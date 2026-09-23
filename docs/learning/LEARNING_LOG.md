@@ -6,6 +6,28 @@ build, an interview question, and a one-paragraph way to explain it in
 an interview. This covers the concepts actually used in PL Intelligence
 — see `FUTURE_IMPROVEMENTS.md` for expanding this to the full topic list.
 
+## Final architecture, stated plainly
+
+PL Intelligence's final, shipped architecture is:
+
+```
+football-data.co.uk, vaastav/FPL archive, openfootball/champions-league
+   → src/ingestion/  → data/raw/
+   → src/cleaning/    → data/processed/
+   → src/validation/  → (checks the cleaning output)
+   → src/transformation/build_database.py → database/pl_intelligence.db (SQLite, star schema)
+   → src/analytics/ + src/ml/  (pandas + scikit-learn)
+   → app/  (Streamlit — the single, final dashboard, 11 pages)
+```
+
+Stack: **Python, Pandas, NumPy, SQLite, scikit-learn, Plotly,
+Streamlit** — tested with **pytest** (57 fast tests) and **Playwright**
+(41 browser tests). That's it; that's the whole product. A Power BI
+export layer was evaluated during development and intentionally
+dropped — see the dedicated Power BI entry further down and
+`docs/PROJECT_PROGRESS.md` for why. Nothing in the running app depends
+on it.
+
 ---
 
 ## Python (pandas / NumPy)
@@ -84,7 +106,10 @@ by dimension tables (descriptive context) joined on surrogate keys.
 
 **Why used:** the analytical questions this project answers (league
 tables, H2H, trends) are naturally SQL aggregations, and a star schema
-is the same shape both SQL and Power BI expect.
+is the same shape a BI tool would expect too — relevant since a Power
+BI export was evaluated during development (see the Power BI entry
+below) before the final decision to ship Streamlit as the single
+dashboard layer.
 
 **Where:** `database/schema.sql`, `src/transformation/build_database.py`.
 
@@ -231,16 +256,26 @@ chart to be readable at a glance, not decorative.
 
 ---
 
-## Power BI & DAX
+## Power BI & DAX (evaluated, then descoped — kept as a real learning entry)
 
 **What it means:** Power BI is a BI tool that loads tables into an
 in-memory model and computes measures with DAX (Data Analysis
 Expressions) — a formula language built around filter context.
 
-**Why used:** to demonstrate the BI-tool side of analytics (star-schema
-modeling, measures, relationships) alongside the custom Streamlit product.
+**Why it's in this log even though it's not in the final product:**
+this project evaluated Power BI as a second consumption layer — a real
+star-schema CSV export and a 48-measure DAX library were built, and
+the model was successfully opened and wired in Power BI Desktop — then
+intentionally dropped so the project could ship one finished Streamlit
+dashboard instead of two partial ones. The DAX knowledge gained is
+real and worth keeping documented; the product decision to not ship it
+is equally worth being able to explain (see
+`docs/learning/INTERVIEW_PREP.md`, "Why did you evaluate Power BI, and
+why did you drop it?").
 
-**Where:** `powerbi/` (model exports + `dax/measures.dax`).
+**Where:** `_archive_old/powerbi_exploration/` (model exports + DAX
+library, preserved unedited as a record — not part of the running
+product; see `docs/PROJECT_PROGRESS.md` for the decision).
 
 **What to understand:** a DAX measure isn't computed once — it's
 re-evaluated for every cell of a visual, in that cell's *filter

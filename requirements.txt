@@ -3,7 +3,6 @@ numpy>=1.26
 streamlit>=1.38
 plotly>=5.22
 scikit-learn>=1.5
-SQLAlchemy>=2.0
 pytest>=8.0
 requests>=2.32
 python-dateutil>=2.9

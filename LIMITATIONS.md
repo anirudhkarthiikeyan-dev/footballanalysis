@@ -57,13 +57,18 @@ Specific limitations of this module:
   convention — a team can record a "win" in a leg of a tie it later
   lost on aggregate or penalties. See `docs/methodology/METHODOLOGY.md`.
 
-## Power BI
+## Power BI — descoped, not a limitation of the current product
 
-The data model and full DAX measure library are complete and
-documented in `powerbi/`, but no `.pbix` file is included — Power BI
-Desktop was not available in the environment this project was built
-in. Opening the model in Desktop and wiring the documented
-relationships takes about 10 minutes; see `powerbi/README.md`.
+Power BI was explored during development (a real star-schema export
+and a 48-measure DAX library were built, and the model was opened and
+wired successfully in Power BI Desktop) and then intentionally dropped
+in favor of a single, finished Streamlit dashboard rather than two
+partial ones. The exploration is preserved unedited in
+`_archive_old/powerbi_exploration/` for reference, but it is not part
+of the product — nothing in this repo requires Power BI to run, and no
+Power BI experience is claimed beyond what's actually there (a data
+model export + written, unexecuted-until-descoping DAX). See
+`docs/PROJECT_PROGRESS.md` for the decision and date.
 
 ## Machine learning scope
 
@@ -76,14 +81,28 @@ to answer yet (per this project's own rule: don't add ML just to claim
 
 ## Testing scope
 
-57 fast unit/data/database/analytics tests (`tests/`) plus 41 Playwright
-browser tests (`tests/ui/` — every page loads, no console/network
-errors, no horizontal overflow, filters actually change real data,
-navigation and the intro's Enter/Skip both work) — 98 tests total, all
-passing. The Playwright suite is a separate, slower suite (launches a
-real Streamlit server and headless Chromium) — see README for how to
-run it. It does not run automatically in this environment's fast
-`pytest tests/` command; run it explicitly with `pytest tests/ui/`.
+57 fast unit/data/database/analytics tests (`tests/`) — 100% reliable,
+verified passing repeatedly across sessions with zero flakes.
+
+41 Playwright browser tests (`tests/ui/` — every page loads, no
+console/network errors, no horizontal overflow, filters actually
+change real data, navigation and the intro's Enter/Skip both work).
+This suite is correct (every individual test passes reliably when run
+in isolation, and every failure it's ever produced was root-caused to
+a real, now-fixed issue — see `docs/learning/LEARNING_LOG.md`'s
+Playwright entry) but it is **not currently rock-solid under repeated
+back-to-back execution** on a shared, general-purpose machine: running
+it 5 times in a row in one session produced results ranging from
+41/41 to 34/41, with a different subset failing each time, consistent
+with system resource contention rather than an application defect (see
+`docs/PROJECT_PROGRESS.md` for the investigation). Treat a single
+Playwright run's result as informative, not as an absolute pass/fail
+gate the way the fast suite is — see `FUTURE_IMPROVEMENTS.md`.
+
+The Playwright suite is separate and slower (launches a real Streamlit
+server and headless Chromium) — see README for how to run it. It does
+not run automatically with the fast `pytest tests/` command; run it
+explicitly with `pytest tests/ui/`.
 
 ## Documentation scope
 

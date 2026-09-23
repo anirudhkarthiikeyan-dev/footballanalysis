@@ -40,7 +40,15 @@ def _wait_for_server(url: str, timeout: float = 45.0) -> bool:
 
 
 @pytest.fixture(scope="session")
-def streamlit_server():
+def browser():
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        yield b
+        b.close()
+
+
+@pytest.fixture(scope="session")
+def streamlit_server(browser):
     test_port = _find_free_port()
     base_url = f"http://localhost:{test_port}"
 
@@ -63,6 +71,24 @@ def streamlit_server():
             proc.terminate()
             log_file.close()
             pytest.fail(f"Streamlit test server did not start within timeout. See {log_path}")
+
+        # The HTTP health check above only confirms the static shell is
+        # served - Streamlit doesn't actually execute app/Home.py (import
+        # pandas/numpy/plotly, render the intro component) until a real
+        # browser opens a WebSocket connection to it, which only happens
+        # on the first genuine page visit. Left alone, whichever test
+        # runs first pays that one-time cost inside its own timeout
+        # budget, which showed up as an intermittent failure specifically
+        # on the first test in the file. Paying that cost once here,
+        # before any test starts, makes every individual test's timeout
+        # measure the same warm, steady-state render time.
+        warm_up_page = browser.new_page()
+        try:
+            warm_up_page.goto(base_url, wait_until="load", timeout=60000)
+            warm_up_page.wait_for_selector("text=ENTER", timeout=60000)
+        finally:
+            warm_up_page.close()
+
         yield base_url
     finally:
         proc.terminate()
@@ -71,14 +97,6 @@ def streamlit_server():
         except subprocess.TimeoutExpired:
             proc.kill()
         log_file.close()
-
-
-@pytest.fixture(scope="session")
-def browser():
-    with sync_playwright() as p:
-        b = p.chromium.launch()
-        yield b
-        b.close()
 
 
 @pytest.fixture
