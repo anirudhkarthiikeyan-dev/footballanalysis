@@ -12,7 +12,7 @@ from app.components.data import all_teams, load_matches
 from app.components.theme import divider, eyebrow, inject_theme, kpi_card
 from src.analytics.head_to_head import h2h_matches, h2h_summary, most_frequent_opponents
 
-st.set_page_config(page_title="Head-to-Head | PL Intelligence", layout="wide")
+st.set_page_config(page_title="Head-to-Head | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("Premier League")

@@ -12,7 +12,7 @@ from app.components.data import all_teams, load_matches
 from app.components.theme import divider, eyebrow, inject_theme, kpi_card
 from src.analytics.team_stats import home_away_split, team_season_journey
 
-st.set_page_config(page_title="Team Explorer | PL Intelligence", layout="wide")
+st.set_page_config(page_title="Team Explorer | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("Premier League")

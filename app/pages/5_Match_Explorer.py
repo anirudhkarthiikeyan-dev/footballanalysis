@@ -10,7 +10,7 @@ import streamlit as st
 from app.components.data import all_seasons, all_teams, load_matches
 from app.components.theme import divider, eyebrow, inject_theme
 
-st.set_page_config(page_title="Match Explorer | PL Intelligence", layout="wide")
+st.set_page_config(page_title="Match Explorer | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("Premier League")

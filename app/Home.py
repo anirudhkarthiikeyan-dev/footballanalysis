@@ -5,14 +5,18 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import pandas as pd
 import streamlit as st
 
 from app.components.data import load_matches, load_players
+from app.components.home import HOME_CSS, LAB_MODULES, lab_module, section_heading, stat_cards
 from app.components.intro import render_intro
-from app.components.theme import badge, divider, eyebrow, inject_theme, kpi_card
+from app.components.theme import inject_theme
+from src.analytics.european import club_season_campaigns
+from src.cleaning.clean_european import SELECTED_CLUBS
 
 st.set_page_config(
-    page_title="PL Intelligence",
+    page_title="GAMESTATE",
     page_icon="assets/icons/favicon.svg" if (ROOT / "assets" / "icons" / "favicon.svg").exists() else "🧭",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -35,67 +39,71 @@ if not st.session_state.intro_seen:
             st.rerun()
     st.stop()
 
+
+@st.cache_data(show_spinner=False)
+def european_totals() -> tuple[int, int]:
+    eu = pd.read_csv(ROOT / "data" / "processed" / "european_matches_clean.csv", parse_dates=["match_date"])
+    return len(eu), len(club_season_campaigns(eu))
+
+
 # ---------------------------------------------------------------- Home page
+st.markdown(HOME_CSS, unsafe_allow_html=True)
 matches = load_matches()
 players = load_players()
+seasons = sorted(matches["season"].unique())
+coverage = f"{seasons[0]} — {seasons[-1]}"
 
-eyebrow("Premier League Football Analytics")
-st.title("PL INTELLIGENCE")
-st.caption("Data Drives A Deeper Game — an end-to-end analytics product covering the Premier League, 2012/13–2025/26.")
-
-divider()
-
-c1, c2, c3, c4 = st.columns(4)
-kpi_card("Seasons covered", f"{matches['season'].nunique()}", c1)
-kpi_card("Matches analyzed", f"{len(matches):,}", c2)
-kpi_card("Clubs in dataset", f"{matches['home_team'].nunique()}", c3)
-kpi_card("Player-seasons tracked", f"{len(players):,}", c4)
-
-divider()
-
-left, right = st.columns([1.3, 1])
-
-with left:
-    st.subheader("What's inside")
+with st.container(key="gs_hero"):
     st.markdown(
-        """
-- **Global Search** — find any team, club, player or season and jump straight to its page
-- **League Table** — final standings for any season, 2012/13–2025/26
-- **League Trends** — goals, home advantage and result mix over 14 seasons
-- **Team Explorer** — season-by-season journey, home/away splits, comparisons
-- **Head-to-Head** — full engine: overall record, recent form, biggest results, historical timeline
-- **Match Explorer** — filter and browse all 5,320 matches in the dataset
-- **Player Explorer** — per-90 stats and position-scoped percentiles, 2019/20–2025/26
-- **European Performance** — Champions League record for 20 major European clubs, 2012/13–2025/26
-- **Methodology** — how the numbers are built, and what isn't included and why
-"""
-    )
-    st.markdown(
-        f'{badge("14 seasons")} {badge("5,320 matches")} {badge("37 PL clubs")} '
-        f'{badge("1,603 players")} {badge("20 European clubs")}',
+        '<div class="gs-hero-copy">'
+        '<div class="gs-hero-eyebrow">Premier League &amp; European Football Analytics</div>'
+        '<div class="gs-hero-title">GAMESTATE</div>'
+        '<div class="gs-hero-tagline">UNDERSTAND THE GAME<br/>THROUGH DATA</div>'
+        f'<div class="gs-hero-meta"><i></i><b>{coverage}</b><span>· {len(seasons)} seasons</span></div>'
+        '</div>',
         unsafe_allow_html=True,
     )
+    with st.container(key="gs_cta", horizontal=True):
+        with st.container(key="gs_cta_primary", width="content"):
+            st.page_link("pages/1_League_Table.py", label="EXPLORE THE GAME →")
+        with st.container(key="gs_cta_secondary", width="content"):
+            st.page_link("pages/0_Global_Search.py", label="SEARCH →")
 
-with right:
-    st.subheader("Coverage at a glance")
+section_heading("Data at a glance")
+stat_cards([
+    (f"{len(seasons)}", "SEASONS", coverage),
+    (f"{len(matches):,}", "MATCHES", "Every Premier League fixture"),
+    (f"{matches['home_team'].nunique()}", "CLUBS", "Premier League sides in range"),
+    (f"{len(players):,}", "PLAYER-SEASONS", f"{players['season'].min()} — {players['season'].max()}"),
+])
+
+section_heading("Analytics modules", "THE GAMESTATE LAB", "Explore the layers behind the game.")
+for row in (LAB_MODULES[:3], LAB_MODULES[3:]):
+    cols = st.columns(3, gap="medium")
+    for col, module in zip(cols, row):
+        with col:
+            lab_module(LAB_MODULES.index(module), *module)
+
+eu_matches, eu_campaigns = european_totals()
+with st.container(key="gs_euro"):
     st.markdown(
-        """
-<div class="pli-card">
-<b>Match data</b><br/>2012/13 – 2025/26, all 14 seasons<br/><br/>
-<b>Player data</b><br/>2019/20 – 2025/26 (7 seasons)<br/><br/>
-<b>Expected goals / assists</b><br/>2022/23 – 2025/26 only<br/><br/>
-<b>European data (Champions League)</b><br/>20 clubs, actual participation seasons only<br/><br/>
-<span style="color:#8b96ad;font-size:0.85rem;">Coverage gaps are real source limitations,
-documented in Methodology — not filled with invented numbers.</span>
-</div>
-""",
+        '<div class="gs-euro-kicker">Second layer · Europe</div>'
+        '<div class="gs-euro-title">EUROPEAN PERFORMANCE</div>'
+        f'<div class="gs-euro-sub">Champions League · {coverage}</div>'
+        '<div class="gs-euro-stats">'
+        f'<div><div class="gs-euro-val">{len(SELECTED_CLUBS)}</div><div class="gs-euro-lbl">SELECTED CLUBS</div></div>'
+        f'<div><div class="gs-euro-val">{eu_matches:,}</div><div class="gs-euro-lbl">CL MATCHES</div></div>'
+        f'<div><div class="gs-euro-val">{eu_campaigns}</div><div class="gs-euro-lbl">CAMPAIGNS</div></div>'
+        '</div>'
+        '<div class="gs-euro-note">Clubs appear only in the seasons they actually qualified for — '
+        'not every selected club played every season.</div>',
         unsafe_allow_html=True,
     )
+    st.page_link("pages/9_European_Performance.py", label="OPEN EUROPEAN PERFORMANCE →")
 
-divider()
 st.markdown(
-    '<div class="pli-footer">PL INTELLIGENCE is an independent analytics project. '
-    "Not affiliated with, endorsed by, or sponsored by the Premier League, its clubs, or any official competition body. "
+    '<div class="pli-footer">GAMESTATE is an independent analytics project. '
+    "Not affiliated with, endorsed by, or sponsored by the Premier League, UEFA, any club, or any official competition body. "
     "All data sourced from public datasets — see Methodology for full sourcing.</div>",
     unsafe_allow_html=True,
 )

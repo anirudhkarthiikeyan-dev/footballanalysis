@@ -79,9 +79,9 @@ INTRO_HTML = """
   .wordmark { position: relative; text-align: center; z-index: 5; }
 
   .pl {
-    font-size: 6.2rem;
+    font-size: clamp(2.2rem, 10.5vw, 4.8rem);
     font-weight: 800;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.12em;
     background: linear-gradient(90deg, #ffffff, #22d3ee 55%, #3b82f6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -91,14 +91,14 @@ INTRO_HTML = """
     line-height: 1;
   }
   @keyframes revealPL {
-    0% { opacity: 0; filter: blur(14px); transform: translateY(14px) scale(0.96); letter-spacing: 0.3em; }
-    100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); letter-spacing: 0.06em; }
+    0% { opacity: 0; filter: blur(14px); transform: translateY(14px) scale(0.96); letter-spacing: 0.2em; }
+    100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); letter-spacing: 0.12em; }
   }
 
   .intelligence {
-    font-size: 1.55rem;
+    font-size: clamp(0.6rem, 2.1vw, 1.05rem);
     font-weight: 600;
-    letter-spacing: 0.5em;
+    letter-spacing: 0.34em;
     color: #e8edf7;
     margin-top: 0.4rem;
     opacity: 0;
@@ -111,9 +111,9 @@ INTRO_HTML = """
 
   .tagline {
     margin-top: 1.6rem;
-    font-size: 0.8rem;
+    font-size: clamp(0.55rem, 1.6vw, 0.8rem);
     font-weight: 500;
-    letter-spacing: 0.32em;
+    letter-spacing: 0.26em;
     text-transform: uppercase;
     color: #8b96ad;
     opacity: 0;
@@ -157,10 +157,10 @@ INTRO_HTML = """
     <div class="glow-orb"></div>
     <div id="particles"></div>
     <div class="wordmark">
-      <div class="pl">PL</div>
-      <div class="intelligence">INTELLIGENCE</div>
+      <div class="pl">GAMESTATE</div>
+      <div class="intelligence">UNDERSTAND THE GAME THROUGH DATA</div>
       <div class="hairline"></div>
-      <div class="tagline">Data Drives A Deeper Game</div>
+      <div class="tagline">Premier League &amp; European Football Analytics</div>
     </div>
   </div>
 <script>

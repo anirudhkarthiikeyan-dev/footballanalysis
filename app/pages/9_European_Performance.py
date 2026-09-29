@@ -22,7 +22,7 @@ from src.analytics.european import (
 from src.analytics.league_table import all_seasons_team_table
 from src.cleaning.clean_european import CLUB_COUNTRY, SELECTED_CLUBS
 
-st.set_page_config(page_title="European Performance | PL Intelligence", layout="wide")
+st.set_page_config(page_title="European Performance | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("UEFA Champions League · 20 selected clubs · 2012/13–2025/26")

@@ -12,7 +12,7 @@ from app.components.data import all_seasons, load_matches
 from app.components.theme import divider, eyebrow, inject_theme
 from src.analytics.league_table import team_season_table
 
-st.set_page_config(page_title="League Table | PL Intelligence", layout="wide")
+st.set_page_config(page_title="League Table | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("Premier League")
@@ -39,24 +39,61 @@ display = table[[
 })
 
 
-def zone(pos: int, n_teams: int) -> str:
+ZONE_COLORS = {"ucl": "#22d3ee", "europe": "#8b5cf6", "relegation": "#f87171"}
+ZONE_TINTS = {"ucl": "rgba(34,211,238,0.16)", "europe": "rgba(139,92,246,0.18)", "relegation": "rgba(248,113,113,0.16)"}
+
+
+def zone_of(pos: int, n_teams: int) -> str | None:
     if pos <= 4:
-        return "background-color: rgba(34,211,238,0.10)"
+        return "ucl"
     if pos <= 6:
-        return "background-color: rgba(139,92,246,0.08)"
+        return "europe"
     if pos > n_teams - 3:
-        return "background-color: rgba(248,113,113,0.10)"
-    return ""
+        return "relegation"
+    return None
 
 
 n = len(display)
-styled = display.style.apply(
-    lambda row: [zone(row["Pos"], n)] * len(row), axis=1
-).format({"Pts": "{:.0f}"})
 
-st.dataframe(styled, width='stretch', hide_index=True, height=740)
 
-st.caption("🔵 Champions League qualification · 🟣 Europa/Conference qualification · 🔴 Relegation zone — bands shown are the standard top-4 / 5-6 / bottom-3 convention, not each season's exact European allocation.")
+def row_style(row):
+    styles = [""] * len(row)
+    z = zone_of(row["Pos"], n)
+    pos_i = row.index.get_loc("Pos")
+    if z:
+        styles[pos_i] = f"color: {ZONE_COLORS[z]}; background-color: {ZONE_TINTS[z]}"
+    else:
+        styles[pos_i] = "color: #8b96ad"
+    styles[row.index.get_loc("Team")] = "color: #ffffff"
+    styles[row.index.get_loc("Pts")] = "color: #ffffff; background-color: rgba(34,211,238,0.08)"
+    gd = row["GD"]
+    styles[row.index.get_loc("GD")] = f"color: {'#34d399' if gd > 0 else '#f87171' if gd < 0 else '#8b96ad'}"
+    return styles
+
+
+styled = display.style.apply(row_style, axis=1).format({"Pts": "{:.0f}", "GD": "{:+d}"})
+
+st.dataframe(
+    styled,
+    width='stretch',
+    hide_index=True,
+    height=738,
+    column_config={
+        "Pos": st.column_config.NumberColumn("Pos", width=56),
+        "Team": st.column_config.TextColumn("Team", width="medium"),
+        **{c: st.column_config.NumberColumn(c, width=60) for c in ["P", "W", "D", "L", "GF", "GA", "GD", "Pts"]},
+    },
+)
+
+st.markdown(
+    f'<div class="pli-legend">'
+    f'<span><i style="background:{ZONE_COLORS["ucl"]}"></i>Champions League</span>'
+    f'<span><i style="background:{ZONE_COLORS["europe"]}"></i>Europa / Conference League</span>'
+    f'<span><i style="background:{ZONE_COLORS["relegation"]}"></i>Relegation</span>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
+st.caption("Bands use the standard top-4 / 5–6 / bottom-3 convention, not each season's exact European allocation.")
 
 divider()
 

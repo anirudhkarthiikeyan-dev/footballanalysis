@@ -1,4 +1,4 @@
-"""Automated browser QA for the PL Intelligence Streamlit app, per the
+"""Automated browser QA for the GAMESTATE Streamlit app, per the
 project's testing requirements: every page loads, navigation works,
 filters work, no console errors, no horizontal overflow, the intro
 renders and both Enter and Skip work.
@@ -18,7 +18,7 @@ PAGES = [
     ("Player_Explorer", "Player Explorer"),
     ("European_Performance", "European Performance"),
     ("Methodology", "Methodology"),
-    ("About", "About PL Intelligence"),
+    ("About", "About GAMESTATE"),
 ]
 
 # Streamlit's own frontend issues a couple of internal polling requests
@@ -76,24 +76,25 @@ def test_home_intro_renders(page, streamlit_server):
     assert page.get_by_text("Skip Intro").is_visible()
     # the cinematic wordmark renders inside the isolated iframe
     frame = page.frame_locator("iframe").first
-    frame.locator("text=INTELLIGENCE").wait_for(timeout=10000)
+    frame.locator("text=GAMESTATE").wait_for(timeout=10000)
 
 
 def test_home_enter_button_reveals_dashboard(page, streamlit_server):
     page.goto(streamlit_server, wait_until="load")
     page.wait_for_selector("text=ENTER", timeout=15000)
     page.get_by_text("ENTER", exact=True).click()
-    page.wait_for_selector("text=PL INTELLIGENCE", timeout=15000)
-    assert page.get_by_text("SEASONS COVERED").is_visible()
-    assert page.get_by_text("MATCHES ANALYZED").is_visible()
+    # hero-only text: the sidebar wordmark "GAMESTATE" is visible during the intro too
+    page.wait_for_selector("text=EXPLORE THE GAME", timeout=15000)
+    assert page.get_by_text("SEASONS", exact=True).is_visible()
+    assert page.get_by_text("MATCHES", exact=True).is_visible()
 
 
 def test_home_skip_intro_reveals_dashboard(page, streamlit_server):
     page.goto(streamlit_server, wait_until="load")
     page.wait_for_selector("text=Skip Intro", timeout=15000)
     page.get_by_text("Skip Intro", exact=True).click()
-    page.wait_for_selector("text=PL INTELLIGENCE", timeout=15000)
-    assert page.get_by_text("CLUBS IN DATASET").is_visible()
+    page.wait_for_selector("text=EXPLORE THE GAME", timeout=15000)
+    assert page.get_by_text("CLUBS", exact=True).is_visible()
 
 
 def test_home_no_console_errors_or_overflow(page, streamlit_server):
@@ -101,7 +102,7 @@ def test_home_no_console_errors_or_overflow(page, streamlit_server):
     page.goto(streamlit_server, wait_until="load")
     page.wait_for_selector("text=Skip Intro", timeout=15000)
     page.get_by_text("Skip Intro", exact=True).click()
-    page.wait_for_selector("text=PL INTELLIGENCE", timeout=15000)
+    page.wait_for_selector("text=EXPLORE THE GAME", timeout=15000)
     page.wait_for_timeout(500)
     assert _real_errors(errors) == [], f"Console errors on Home: {_real_errors(errors)}"
     assert _no_horizontal_overflow(page)
@@ -112,15 +113,16 @@ def test_home_no_console_errors_or_overflow(page, streamlit_server):
 @pytest.mark.parametrize("slug,heading", PAGES)
 def test_page_loads_with_expected_heading(page, streamlit_server, slug, heading):
     page.goto(f"{streamlit_server}/{slug}", wait_until="load")
-    page.wait_for_selector(f"text={heading}", timeout=15000)
-    assert page.get_by_text(heading).first.is_visible()
+    title = page.get_by_role("heading", name=heading).first
+    title.wait_for(timeout=15000)
+    assert title.is_visible()
 
 
 @pytest.mark.parametrize("slug,heading", PAGES)
 def test_page_no_console_errors(page, streamlit_server, slug, heading):
     errors = _collect_errors(page)
     page.goto(f"{streamlit_server}/{slug}", wait_until="load")
-    page.wait_for_selector(f"text={heading}", timeout=15000)
+    page.get_by_role("heading", name=heading).first.wait_for(timeout=15000)
     page.wait_for_timeout(500)
     assert _real_errors(errors) == [], f"Console errors on {slug}: {_real_errors(errors)}"
 
@@ -128,7 +130,7 @@ def test_page_no_console_errors(page, streamlit_server, slug, heading):
 @pytest.mark.parametrize("slug,heading", PAGES)
 def test_page_no_horizontal_overflow(page, streamlit_server, slug, heading):
     page.goto(f"{streamlit_server}/{slug}", wait_until="load")
-    page.wait_for_selector(f"text={heading}", timeout=15000)
+    page.get_by_role("heading", name=heading).first.wait_for(timeout=15000)
     assert _no_horizontal_overflow(page), f"{slug} has horizontal overflow at 1440px width"
 
 
@@ -138,15 +140,16 @@ def test_sidebar_navigation_between_pages(page, streamlit_server):
     page.goto(streamlit_server, wait_until="load")
     page.wait_for_selector("text=Skip Intro", timeout=15000)
     page.get_by_text("Skip Intro", exact=True).click()
-    page.wait_for_selector("text=PL INTELLIGENCE", timeout=15000)
+    page.wait_for_selector("text=EXPLORE THE GAME", timeout=15000)
 
-    page.get_by_role("link", name="League Table").click()
-    page.wait_for_selector("text=League Table", timeout=15000)
-    assert "League_Table" in page.url
+    sidebar = page.locator('section[data-testid="stSidebar"]')
+    sidebar.get_by_role("link", name="Standings").click()
+    page.wait_for_url("**/League_Table*", timeout=15000)
+    page.get_by_role("heading", name="League Table").first.wait_for(timeout=15000)
 
-    page.get_by_role("link", name="Head to Head").click()
-    page.wait_for_selector("text=Head-to-Head", timeout=15000)
-    assert "Head_to_Head" in page.url
+    sidebar.get_by_role("link", name="Head-to-Head").click()
+    page.wait_for_url("**/Head_to_Head*", timeout=15000)
+    page.get_by_role("heading", name="Head-to-Head").first.wait_for(timeout=15000)
 
 
 # ---------------------------------------------------------------- Filters actually work

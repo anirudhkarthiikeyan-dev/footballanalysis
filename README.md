@@ -1,8 +1,8 @@
-# PL INTELLIGENCE
+# GAMESTATE
 
-### Premier League Football Analytics
+### Premier League & European Football Analytics
 
-*Data Drives A Deeper Game*
+*Understand the game through data*
 
 An end-to-end football analytics product covering the Premier League,
 2012/13–2025/26: a real data pipeline, a star-schema SQLite database, a

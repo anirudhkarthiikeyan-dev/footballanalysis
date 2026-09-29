@@ -12,7 +12,7 @@ from app.components.data import load_matches
 from app.components.theme import divider, eyebrow, inject_theme
 from src.analytics.team_stats import league_goals_trend
 
-st.set_page_config(page_title="League Trends | PL Intelligence", layout="wide")
+st.set_page_config(page_title="League Trends | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("Premier League · 2012/13 – 2025/26")

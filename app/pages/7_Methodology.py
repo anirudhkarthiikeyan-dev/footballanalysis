@@ -9,7 +9,7 @@ import streamlit as st
 
 from app.components.theme import divider, eyebrow, inject_theme
 
-st.set_page_config(page_title="Methodology | PL Intelligence", layout="wide")
+st.set_page_config(page_title="Methodology | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("How the numbers are built")
@@ -115,7 +115,7 @@ st.markdown(
 
 divider()
 st.markdown(
-    '<div class="pli-footer">PL INTELLIGENCE is an independent analytics project, not affiliated with '
+    '<div class="pli-footer">GAMESTATE is an independent analytics project, not affiliated with '
     "the Premier League or any club.</div>",
     unsafe_allow_html=True,
 )

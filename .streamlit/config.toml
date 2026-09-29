@@ -1,0 +1,30 @@
+# Pin the dark GAMESTATE theme. Without this, Streamlit follows the
+# viewer's OS light/dark setting, and on a light-mode machine the native
+# widgets (tables, dropdowns, header bar, sidebar links) render light on
+# top of the app's dark custom background.
+[theme]
+base = "dark"
+primaryColor = "#22d3ee"
+backgroundColor = "#050b16"
+secondaryBackgroundColor = "#0f1c38"
+textColor = "#e8edf7"
+linkColor = "#22d3ee"
+font = "Inter, sans-serif"
+headingFont = "Space Grotesk, Inter, sans-serif"
+borderColor = "#1d2d52"
+showWidgetBorder = true
+baseRadius = "10px"
+dataframeBorderColor = "#16264a"
+dataframeHeaderBackgroundColor = "#0f1c38"
+chartCategoricalColors = ["#22d3ee", "#8b5cf6", "#3b82f6", "#34d399", "#fbbf24", "#f87171"]
+
+[theme.sidebar]
+backgroundColor = "#0a1428"
+secondaryBackgroundColor = "#0f1c38"
+textColor = "#c7cfe0"
+borderColor = "#16264a"
+
+[client]
+# Default page list is replaced by the grouped GAMESTATE sidebar (app/components/theme.py).
+# Routes are unchanged - app/pages/ is still auto-discovered.
+showSidebarNavigation = false

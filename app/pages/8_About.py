@@ -9,16 +9,16 @@ import streamlit as st
 
 from app.components.theme import divider, eyebrow, inject_theme
 
-st.set_page_config(page_title="About | PL Intelligence", layout="wide")
+st.set_page_config(page_title="About | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("Project")
-st.title("About PL Intelligence")
+st.title("About GAMESTATE")
 
 divider()
 st.markdown(
     """
-**PL INTELLIGENCE** is an end-to-end Premier League football analytics product covering 2012/13–2025/26,
+**GAMESTATE** is an end-to-end Premier League football analytics product covering 2012/13–2025/26,
 built as a portfolio-grade demonstration of the full data analytics stack: ingestion, cleaning,
 validation, a star-schema SQLite database, an analytics/ML layer, and a custom Streamlit product —
 the single, final dashboard layer for the project.

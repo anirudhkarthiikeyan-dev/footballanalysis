@@ -1,7 +1,10 @@
-"""PL INTELLIGENCE visual identity: deep navy/black base, electric blue +
+"""GAMESTATE visual identity: deep navy/black base, electric blue +
 cyan highlights, restrained purple accents. Injected once per page via
 inject_theme(). All custom CSS lives here so pages stay free of styling code.
 """
+import inspect
+from pathlib import Path
+
 import streamlit as st
 
 NAVY_950 = "#050b16"
@@ -126,14 +129,204 @@ h1 {{ font-weight: 700 !important; }}
     opacity: 0.7;
 }}
 
+/* Top bar: blend into the page instead of a solid strip */
+[data-testid="stHeader"] {{
+    background: rgba(5,11,22,0.72);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(34,211,238,0.06);
+}}
+
+/* Sidebar: GAMESTATE wordmark + grouped navigation */
+section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {{
+    padding-top: 0.4rem;
+}}
+.gs-brand {{
+    padding: 0.2rem 0.6rem 1.1rem;
+    border-bottom: 1px solid rgba(34,211,238,0.10);
+    margin-bottom: 0.4rem;
+}}
+.gs-brand-word {{
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    letter-spacing: 0.16em;
+    color: #ffffff;
+    line-height: 1;
+}}
+.gs-brand-word b {{ color: {CYAN}; font-weight: 700; }}
+.gs-brand-tag {{
+    margin-top: 0.45rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    color: {TEXT_MUTED};
+    text-transform: uppercase;
+}}
+.gs-nav-section {{
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1;
+    color: #5f6b85;
+    text-transform: uppercase;
+    padding: 1.1rem 0.6rem 0.45rem;
+}}
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
+    margin-bottom: 0 !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a {{
+    border-radius: 8px;
+    padding: 0.38rem 0.6rem;
+    transition: background 0.15s ease;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a span,
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a p {{
+    color: #aeb8cc;
+    font-size: 0.88rem;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover {{
+    background: rgba(34,211,238,0.07);
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover span,
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover p {{
+    color: #ffffff;
+}}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
+    gap: 0.1rem;
+}}
+section[data-testid="stSidebar"] .st-key-gs_nav_active [data-testid="stPageLink"] a {{
+    background: linear-gradient(90deg, rgba(34,211,238,0.24), rgba(34,211,238,0.05) 70%, transparent);
+    box-shadow: inset 3px 0 0 {CYAN};
+}}
+section[data-testid="stSidebar"] .st-key-gs_nav_active [data-testid="stPageLink"] a p {{
+    color: #ffffff;
+    font-weight: 600;
+}}
+section[data-testid="stSidebar"] .st-key-gs_nav_active [data-testid="stIconMaterial"] {{
+    color: {CYAN};
+}}
+
+/* Data tables: framed panel on a dark surface */
+[data-testid="stDataFrame"] {{
+    border: 1px solid {NAVY_700};
+    border-radius: 12px;
+    overflow: hidden;
+    background: {NAVY_900};
+    box-shadow: 0 8px 24px rgba(0,0,0,0.30);
+}}
+
+/* Inputs */
+[data-testid="stTextInput"] input:focus,
+[data-baseweb="select"]:focus-within {{
+    box-shadow: 0 0 0 1px {CYAN};
+}}
+
+/* Buttons */
+[data-testid="stBaseButton-secondary"],
+[data-testid="stDownloadButton"] button {{
+    background: {NAVY_800};
+    border: 1px solid {NAVY_700};
+    color: {TEXT_PRIMARY};
+}}
+[data-testid="stBaseButton-secondary"]:hover,
+[data-testid="stDownloadButton"] button:hover {{
+    border-color: {CYAN};
+    color: {CYAN};
+}}
+[data-testid="stBaseButton-primary"] {{
+    color: {NAVY_950};
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}}
+
+/* Expanders and alerts sit on the same dark surface as cards */
+[data-testid="stExpander"] details {{
+    background: rgba(15,28,56,0.45);
+    border: 1px solid {NAVY_700};
+    border-radius: 12px;
+}}
+[data-testid="stAlert"] {{
+    border-radius: 12px;
+}}
+
+[data-testid="stMetricLabel"] {{
+    color: {TEXT_MUTED};
+}}
+
+/* League table zone legend */
+.pli-legend {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    color: {TEXT_MUTED};
+    font-size: 0.78rem;
+    margin-top: 0.6rem;
+}}
+.pli-legend span {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}}
+.pli-legend i {{
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+}}
+
 #MainMenu {{visibility: hidden;}}
 footer {{visibility: hidden;}}
 </style>
 """
 
 
+# Display labels only - each entry points at the existing page file, so
+# routes (/League_Table, /Head_to_Head, ...) are unchanged.
+NAV = [
+    ("Main", [
+        ("Home.py", "Overview", ":material/space_dashboard:"),
+        ("pages/0_Global_Search.py", "Search", ":material/search:"),
+        ("pages/1_League_Table.py", "Standings", ":material/leaderboard:"),
+        ("pages/2_League_Trends.py", "Trends", ":material/trending_up:"),
+    ]),
+    ("Analysis", [
+        ("pages/3_Team_Explorer.py", "Teams", ":material/groups:"),
+        ("pages/4_Head_to_Head.py", "Head-to-Head", ":material/compare_arrows:"),
+        ("pages/5_Match_Explorer.py", "Matches", ":material/sports_soccer:"),
+        ("pages/6_Player_Explorer.py", "Players", ":material/person_search:"),
+    ]),
+    ("Europe", [
+        ("pages/9_European_Performance.py", "European Performance", ":material/public:"),
+    ]),
+    ("Info", [
+        ("pages/7_Methodology.py", "Methodology", ":material/science:"),
+        ("pages/8_About.py", "About", ":material/info:"),
+    ]),
+]
+
+
+def render_sidebar(current_file: str):
+    with st.sidebar:
+        st.markdown(
+            '<div class="gs-brand"><div class="gs-brand-word">GAME<b>STATE</b></div>'
+            '<div class="gs-brand-tag">Understand the game through data</div></div>',
+            unsafe_allow_html=True,
+        )
+        for section, links in NAV:
+            st.markdown(f'<div class="gs-nav-section">{section}</div>', unsafe_allow_html=True)
+            for page, label, icon in links:
+                if Path(page).name == current_file:
+                    # Streamlit marks the active page_link only with a generated
+                    # class name, so wrap it in a keyed container to style it.
+                    with st.container(key="gs_nav_active"):
+                        st.page_link(page, label=label, icon=icon)
+                else:
+                    st.page_link(page, label=label, icon=icon)
+
+
 def inject_theme():
     st.markdown(CSS, unsafe_allow_html=True)
+    caller = inspect.currentframe().f_back
+    render_sidebar(Path(caller.f_code.co_filename).name)
 
 
 def eyebrow(text: str):

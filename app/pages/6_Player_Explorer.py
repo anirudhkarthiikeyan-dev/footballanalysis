@@ -14,7 +14,7 @@ from app.components.theme import divider, eyebrow, inject_theme, kpi_card
 from src.analytics.player_stats import add_per90_columns, percentile_rank, player_season_history, top_performers
 from src.ml.player_similarity import MIN_SEASON_FOR_SIMILARITY, find_similar_players
 
-st.set_page_config(page_title="Player Explorer | PL Intelligence", layout="wide")
+st.set_page_config(page_title="Player Explorer | GAMESTATE", layout="wide")
 inject_theme()
 
 eyebrow("Premier League · Player data 2019/20–2025/26")

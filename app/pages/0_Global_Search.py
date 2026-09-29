@@ -11,10 +11,10 @@ from app.components.data import all_seasons, all_teams, load_players
 from app.components.theme import divider, eyebrow, inject_theme
 from src.cleaning.clean_european import SELECTED_CLUBS
 
-st.set_page_config(page_title="Search | PL Intelligence", layout="wide")
+st.set_page_config(page_title="Search | GAMESTATE", layout="wide")
 inject_theme()
 
-eyebrow("Find anything in PL Intelligence")
+eyebrow("Find anything in GAMESTATE")
 st.title("Global Search")
 st.caption("Search across teams, clubs, players and seasons — click a result to jump straight to its page.")
 
